@@ -216,6 +216,116 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // ─── STAGE 5: Exception Handling Logic ───────────────────────────────────
+  const stage5 = document.getElementById('stage5');
+  if (stage5) {
+    // Counter references
+    const s5 = {
+      openFlags:         stage5.querySelector('.summary-cards .card:nth-child(1) .card-value'),
+      awaitingReschedule:stage5.querySelector('.summary-cards .card:nth-child(2) .card-value'),
+      rescheduled:       stage5.querySelector('.summary-cards .card:nth-child(3) .card-value'),
+      closed:            stage5.querySelector('.summary-cards .card:nth-child(4) .card-value'),
+    };
+
+    // Initialise counters from the static HTML values
+    let openFlags          = parseInt(s5.openFlags.textContent, 10)          || 0;
+    let awaitingReschedule = parseInt(s5.awaitingReschedule.textContent, 10) || 0;
+    let rescheduled        = parseInt(s5.rescheduled.textContent, 10)        || 0;
+    let closed             = parseInt(s5.closed.textContent, 10)             || 0;
+
+    function updateS5Cards() {
+      s5.openFlags.textContent          = openFlags;
+      s5.awaitingReschedule.textContent = awaitingReschedule;
+      s5.rescheduled.textContent        = rescheduled;
+      s5.closed.textContent             = closed;
+    }
+
+    function removeItemWithFade(item) {
+      item.style.transition = 'opacity 0.35s ease, max-height 0.35s ease';
+      item.style.overflow   = 'hidden';
+      item.style.maxHeight  = item.offsetHeight + 'px';
+      requestAnimationFrame(() => {
+        item.style.opacity   = '0';
+        item.style.maxHeight = '0';
+        item.style.paddingTop    = '0';
+        item.style.paddingBottom = '0';
+      });
+      setTimeout(() => item.remove(), 380);
+    }
+
+    // Wire up every exception row
+    const exceptionList = stage5.querySelector('.exception-list');
+
+    exceptionList.addEventListener('click', (e) => {
+      const item = e.target.closest('.exception-item');
+      if (!item) return;
+
+      // ── Reschedule ────────────────────────────────
+      if (e.target.classList.contains('btn-outline')) {
+        const dateInput = item.querySelector('input[type="text"]');
+        const dateVal   = dateInput.value.trim();
+
+        if (!dateVal || dateVal === 'dd/mm/yyyy') {
+          showToast('Enter a reschedule date first', true);
+          dateInput.focus();
+          dateInput.style.borderColor = 'var(--color-orange)';
+          setTimeout(() => dateInput.style.borderColor = '', 1500);
+          return;
+        }
+
+        const wasAlreadyRescheduled = item.dataset.rescheduled === 'true';
+
+        if (!wasAlreadyRescheduled) {
+          // Move from Awaiting → Rescheduled
+          awaitingReschedule = Math.max(0, awaitingReschedule - 1);
+          rescheduled       += 1;
+          item.dataset.rescheduled = 'true';
+        } else {
+          // Update existing reschedule date
+        }
+
+        // Update desc text to reflect new date
+        const desc = item.querySelector('.ex-desc');
+        if (desc) {
+          // Append/replace rescheduled date note
+          const current = desc.textContent.replace(/ - rescheduled for .+/, '');
+          desc.textContent = `${current} - rescheduled for ${dateVal}`;
+        }
+
+        // Visual feedback on button
+        const btn = e.target;
+        btn.textContent = 'Updated ✓';
+        btn.style.borderColor = 'var(--brand-green)';
+        btn.style.color       = 'var(--brand-green)';
+        setTimeout(() => {
+          btn.textContent     = 'Reschedule';
+          btn.style.borderColor = '';
+          btn.style.color       = '';
+        }, 1800);
+
+        updateS5Cards();
+        showToast('Exception rescheduled', false);
+      }
+
+      // ── Close ─────────────────────────────────────
+      if (e.target.classList.contains('btn-text')) {
+        openFlags = Math.max(0, openFlags - 1);
+
+        // If it had been rescheduled, decrement that too
+        if (item.dataset.rescheduled === 'true') {
+          rescheduled = Math.max(0, rescheduled - 1);
+        } else {
+          awaitingReschedule = Math.max(0, awaitingReschedule - 1);
+        }
+
+        closed += 1;
+        updateS5Cards();
+        removeItemWithFade(item);
+        showToast('Exception closed', false);
+      }
+    });
+  }
+
   // ─── Toast ────────────────────────────────────────────────────────────────
   function showToast(message, isError) {
     const container = document.getElementById('toast-container');
