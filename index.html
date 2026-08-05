@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ackee Ops Dashboard</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600&family=Oswald:wght@500&display=swap" rel="stylesheet">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-left">
+      <div class="logo">ACKEE OPS</div>
+      <div class="breadcrumb">FARMER &rarr; FACTORY</div>
+      <div class="nav-tabs">
+        <button class="nav-tab active" data-target="stage1"><span class="tab-num">1 &middot;</span> INTAKE</button>
+        <button class="nav-tab" data-target="stage2"><span class="tab-num">2 &middot;</span> DISPATCH</button>
+        <button class="nav-tab" data-target="stage3"><span class="tab-num">3 &middot;</span> TRANSIT</button>
+        <button class="nav-tab" data-target="stage4"><span class="tab-num">4 &middot;</span> RECEIVING</button>
+        <button class="nav-tab" data-target="stage5"><span class="tab-num">5 &middot;</span> EXCEPTIONS</button>
+      </div>
+    </div>
+    <div class="nav-right">
+      <span class="user-email">krishnanshetty03@gmail.com</span>
+      <button class="sign-out">Sign out</button>
+    </div>
+  </nav>
+
+  <main class="container">
+    <!-- STAGE 1: INTAKE -->
+    <section id="stage1" class="stage-section active">
+      <header class="stage-header">
+        <div class="stage-subtitle">STAGE 1</div>
+        <h1 class="stage-title">REQUEST INTAKE</h1>
+      </header>
+
+      <div class="summary-cards">
+        <div class="card">
+          <div class="card-label">UNASSIGNED</div>
+          <div class="card-value">1</div>
+          <div class="card-desc">awaiting a route</div>
+        </div>
+        <div class="card">
+          <div class="card-label">BAGS WAITING</div>
+          <div class="card-value">45</div>
+          <div class="card-desc">estimated</div>
+        </div>
+        <div class="card">
+          <div class="card-label">REQUESTS TODAY</div>
+          <div class="card-value">0</div>
+          <div class="card-desc">via WhatsApp intake</div>
+        </div>
+        <div class="card card-flagged">
+          <div class="card-label">FLAGGED</div>
+          <div class="card-value text-orange">2</div>
+          <div class="card-desc">need a next action</div>
+        </div>
+      </div>
+
+      <div class="filter-tabs">
+        <button class="filter-tab active">ALL</button>
+        <button class="filter-tab">UNASSIGNED</button>
+        <button class="filter-tab">ASSIGNED</button>
+        <button class="filter-tab">FLAGGED</button>
+        <button class="filter-tab">FULFILLED</button>
+      </div>
+
+      <div class="data-table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>FARMER</th>
+              <th>LOCATION</th>
+              <th>TYPE</th>
+              <th>EST. BAGS</th>
+              <th>RECEIVED</th>
+              <th>STATUS</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div class="farmer-name">Nana Adjei</div>
+                <div class="farmer-phone">+233 24 111 0007</div>
+              </td>
+              <td>Elmina Road</td>
+              <td>Staff pickup</td>
+              <td>60</td>
+              <td>20h ago</td>
+              <td><span class="badge badge-flagged">FLAGGED</span></td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="farmer-name">Ama Serwaa</div>
+                <div class="farmer-phone">+233 24 111 0006</div>
+              </td>
+              <td>Twifo Praso</td>
+              <td>Staff pickup</td>
+              <td>28</td>
+              <td>21h ago</td>
+              <td><span class="badge badge-assigned">ASSIGNED</span></td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="farmer-name">Kofi Antwi</div>
+                <div class="farmer-phone">+233 24 111 0005</div>
+              </td>
+              <td>Jukwa</td>
+              <td>Self drop</td>
+              <td>12</td>
+              <td>21h ago</td>
+              <td><span class="badge badge-assigned">ASSIGNED</span></td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="farmer-name">Akosua Darko</div>
+                <div class="farmer-phone">+233 24 111 0004</div>
+              </td>
+              <td>Dunkwa</td>
+              <td>Staff pickup</td>
+              <td>45</td>
+              <td>22h ago</td>
+              <td><span class="badge badge-unassigned">UNASSIGNED</span></td>
+              <td class="action-cell"><span>Flag</span></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="farmer-name">Yaw Boateng</div>
+                <div class="farmer-phone">+233 24 111 0003</div>
+              </td>
+              <td>Assin Fosu</td>
+              <td>Staff pickup</td>
+              <td>30</td>
+              <td>23h ago</td>
+              <td><span class="badge badge-fulfilled">FULFILLED</span></td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="farmer-name">Kwame Mensah</div>
+                <div class="farmer-phone">+233 24 111 0001</div>
+              </td>
+              <td>Assin Fosu</td>
+              <td>Staff pickup</td>
+              <td>40</td>
+              <td>1d ago</td>
+              <td><span class="badge badge-fulfilled">FULFILLED</span></td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="farmer-name">Abena Owusu</div>
+                <div class="farmer-phone">+233 24 111 0002</div>
+              </td>
+              <td>Twifo Praso</td>
+              <td>Staff pickup</td>
+              <td>35</td>
+              <td>1d ago</td>
+              <td><span class="badge badge-fulfilled">FULFILLED</span></td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="farmer-name">Esi Quartey</div>
+                <div class="farmer-phone">+233 24 111 0008</div>
+              </td>
+              <td>Dunkwa</td>
+              <td>Staff pickup</td>
+              <td>22</td>
+              <td>2d ago</td>
+              <td><span class="badge badge-flagged">FLAGGED</span></td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- STAGE 2: DISPATCH -->
+    <section id="stage2" class="stage-section">
+      <header class="stage-header">
+        <div class="stage-subtitle">STAGE 2</div>
+        <h1 class="stage-title">DISPATCH & SHIPMENT PLANNING</h1>
+      </header>
+
+      <div class="summary-cards">
+        <div class="card">
+          <div class="card-label">PENDING REQUESTS</div>
+          <div class="card-value">1</div>
+        </div>
+        <div class="card">
+          <div class="card-label">SELECTED BAGS</div>
+          <div class="card-value">0</div>
+          <div class="card-desc">ceiling 120 / round</div>
+        </div>
+        <div class="card">
+          <div class="card-label">PLANNED FOR DATE</div>
+          <div class="card-value">0</div>
+          <div class="card-desc">fleet 5 x 120 = 600</div>
+        </div>
+        <div class="card">
+          <div class="card-label">ROUTES ON DATE</div>
+          <div class="card-value">0</div>
+        </div>
+      </div>
+
+      <div class="dispatch-layout">
+        <div class="dispatch-left">
+          <div class="section-title-sm">PENDING REQUESTS</div>
+          <div class="pending-list">
+            <div class="pending-item">
+              <label class="checkbox-container">
+                <input type="checkbox">
+                <span class="checkmark"></span>
+              </label>
+              <div class="pending-details">
+                <div class="pending-name">Akosua Darko</div>
+                <div class="pending-loc">Dunkwa &middot; Staff pickup</div>
+              </div>
+              <div class="pending-bags">45 bags</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="dispatch-right">
+          <div class="section-title-sm flex-between">
+            <span>ROUND LOAD</span>
+          </div>
+          <div class="round-load-val"><span class="text-green">0</span> / 120</div>
+          <div class="round-load-bar">
+            <div class="round-load-fill"></div>
+          </div>
+          
+          <form class="route-form">
+            <div class="form-group">
+              <label>VEHICLE</label>
+              <input type="text" value="GT-9134-20">
+            </div>
+            <div class="form-group">
+              <label>DRIVER</label>
+              <input type="text" placeholder="e.g. Isaac Tetteh">
+            </div>
+            <div class="form-group">
+              <label>SCHEDULED DATE</label>
+              <div class="input-with-icon">
+                <input type="text" value="05/08/2026">
+                <span class="calendar-icon">&#128197;</span>
+              </div>
+            </div>
+            <button type="button" class="btn-primary">Create route (0 stops)</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="routes-section">
+        <div class="section-title-sm">ROUTES</div>
+        <table class="data-table">
+          <tbody>
+            <tr>
+              <td class="font-bold">RT-101</td>
+              <td>2026-08-04</td>
+              <td>Isaac Tetteh</td>
+              <td>GT-4821-19</td>
+              <td>3 stops</td>
+              <td>105 bags</td>
+              <td><span class="badge badge-fulfilled">RECEIVED</span></td>
+              <td></td>
+            </tr>
+            <tr>
+              <td class="font-bold">RT-102</td>
+              <td>2026-08-04</td>
+              <td>Mustapha Ali</td>
+              <td>GT-9134-20</td>
+              <td>0 stops</td>
+              <td>0 bags</td>
+              <td><span class="badge badge-unassigned">PLANNED</span></td>
+              <td><button class="btn-outline">Dispatch</button></td>
+            </tr>
+            <tr>
+              <td class="font-bold">RT-299</td>
+              <td>2026-08-04</td>
+              <td>lakshmi</td>
+              <td>GT-9134-20</td>
+              <td>2 stops</td>
+              <td>40 bags</td>
+              <td><span class="badge badge-unassigned">PLANNED</span></td>
+              <td><button class="btn-outline">Dispatch</button></td>
+            </tr>
+            <tr>
+              <td class="font-bold">RT-099</td>
+              <td>2026-08-03</td>
+              <td>Isaac Tetteh</td>
+              <td>GT-4821-19</td>
+              <td>2 stops</td>
+              <td>88 bags</td>
+              <td><span class="badge badge-fulfilled">RECEIVED</span></td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- STAGE 3: TRANSIT -->
+    <section id="stage3" class="stage-section">
+      <header class="stage-header">
+        <div class="stage-subtitle">STAGE 3</div>
+        <h1 class="stage-title">IN-TRANSIT TRACKING</h1>
+      </header>
+
+      <div class="summary-cards">
+        <div class="card">
+          <div class="card-label">VEHICLES OUT</div>
+          <div class="card-value">0</div>
+        </div>
+        <div class="card">
+          <div class="card-label">STOPS REMAINING</div>
+          <div class="card-value">0</div>
+        </div>
+        <div class="card">
+          <div class="card-label">BAGS COLLECTED</div>
+          <div class="card-value">0</div>
+          <div class="card-desc">actual, so far</div>
+        </div>
+        <div class="card">
+          <div class="card-label">STOPS DONE</div>
+          <div class="card-value">0</div>
+          <div class="card-desc">of 0</div>
+        </div>
+      </div>
+
+      <div class="empty-state">
+        No vehicles on the road. Dispatch a planned route to start tracking.
+      </div>
+    </section>
+
+    <!-- STAGE 4: RECEIVING -->
+    <section id="stage4" class="stage-section">
+      <header class="stage-header">
+        <div class="stage-subtitle">STAGE 4</div>
+        <h1 class="stage-title">ARRIVAL & RECEIVING</h1>
+      </header>
+
+      <div class="summary-cards">
+        <div class="card">
+          <div class="card-label">AWAITING ARRIVAL</div>
+          <div class="card-value">0</div>
+          <div class="card-desc">vehicles inbound</div>
+        </div>
+        <div class="card">
+          <div class="card-label">GOOD BAGS IN STOCK</div>
+          <div class="card-value">177</div>
+        </div>
+        <div class="card">
+          <div class="card-label">FAILED BAGS</div>
+          <div class="card-value text-orange">4</div>
+          <div class="card-desc">held separately</div>
+        </div>
+        <div class="card">
+          <div class="card-label">RECEIPTS LOGGED</div>
+          <div class="card-value">5</div>
+        </div>
+      </div>
+
+      <div class="empty-state">
+        Nothing inbound right now.
+      </div>
+
+      <div class="routes-section">
+        <div class="section-title-sm">RECEIVING LOG</div>
+        <table class="data-table mt-3">
+          <tbody>
+            <tr>
+              <td>Kwame Mensah</td>
+              <td>38 recv</td>
+              <td>1 failed</td>
+              <td><span class="badge badge-quality-fail">QUALITY FAIL</span></td>
+              <td class="text-right text-gray">13h ago</td>
+            </tr>
+            <tr>
+              <td>Abena Owusu</td>
+              <td>33 recv</td>
+              <td>-</td>
+              <td><span class="badge badge-quality-pass">QUALITY PASS</span></td>
+              <td class="text-right text-gray">13h ago</td>
+            </tr>
+            <tr>
+              <td>Yaw Boateng</td>
+              <td>30 recv</td>
+              <td>-</td>
+              <td><span class="badge badge-quality-pass">QUALITY PASS</span></td>
+              <td class="text-right text-gray">13h ago</td>
+            </tr>
+            <tr>
+              <td>Kwame Mensah</td>
+              <td>36 recv</td>
+              <td>-</td>
+              <td><span class="badge badge-quality-pass">QUALITY PASS</span></td>
+              <td class="text-right text-gray">19h ago</td>
+            </tr>
+            <tr>
+              <td>Akosua Darko</td>
+              <td>44 recv</td>
+              <td>3 failed</td>
+              <td><span class="badge badge-quality-fail">QUALITY FAIL</span></td>
+              <td class="text-right text-gray">19h ago</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- STAGE 5: EXCEPTIONS -->
+    <section id="stage5" class="stage-section">
+      <header class="stage-header">
+        <div class="stage-subtitle">STAGE 5</div>
+        <h1 class="stage-title">EXCEPTION HANDLING</h1>
+      </header>
+
+      <div class="summary-cards">
+        <div class="card card-flagged">
+          <div class="card-label">OPEN FLAGS</div>
+          <div class="card-value text-orange">4</div>
+        </div>
+        <div class="card">
+          <div class="card-label">AWAITING RESCHEDULE</div>
+          <div class="card-value">3</div>
+        </div>
+        <div class="card">
+          <div class="card-label">RESCHEDULED</div>
+          <div class="card-value">1</div>
+        </div>
+        <div class="card">
+          <div class="card-label">CLOSED</div>
+          <div class="card-value">0</div>
+        </div>
+      </div>
+
+      <div class="routes-section">
+        <div class="section-title-sm">OPEN</div>
+        <div class="exception-list">
+          
+          <div class="exception-item">
+            <div class="ex-left">
+              <div class="ex-title">
+                <span class="badge badge-quality-fail">QUALITY ISSUE</span>
+                <span class="ex-bold">Route RT-101 &middot; Isaac Tetteh</span>
+              </div>
+              <div class="ex-desc">1 bags failed quality on arrival - flagged 13h ago</div>
+            </div>
+            <div class="ex-right">
+              <div class="input-with-icon-sm">
+                <input type="text" placeholder="dd/mm/yyyy">
+                <span class="calendar-icon">&#128197;</span>
+              </div>
+              <button class="btn-outline">Reschedule</button>
+              <button class="btn-text">Close</button>
+            </div>
+          </div>
+
+          <div class="exception-item">
+            <div class="ex-left">
+              <div class="ex-title">
+                <span class="badge badge-farmer-not-ready">FARMER NOT READY</span>
+                <span class="ex-bold">Nana Adjei &middot; 60 bags</span>
+              </div>
+              <div class="ex-desc">Flagged from intake queue &mdash; Nana Adjei - flagged 19h ago</div>
+            </div>
+            <div class="ex-right">
+              <div class="input-with-icon-sm">
+                <input type="text" placeholder="dd/mm/yyyy">
+                <span class="calendar-icon">&#128197;</span>
+              </div>
+              <button class="btn-outline">Reschedule</button>
+              <button class="btn-text">Close</button>
+            </div>
+          </div>
+
+          <div class="exception-item">
+            <div class="ex-left">
+              <div class="ex-title">
+                <span class="badge badge-farmer-not-ready">FARMER NOT READY</span>
+                <span class="ex-bold">Esi Quartey &middot; 22 bags</span>
+              </div>
+              <div class="ex-desc">Farmer said bags not filled yet - flagged 19h ago - rescheduled for 2026-08-04</div>
+            </div>
+            <div class="ex-right">
+              <div class="input-with-icon-sm">
+                <input type="text" value="04/08/2026">
+                <span class="calendar-icon">&#128197;</span>
+              </div>
+              <button class="btn-outline">Reschedule</button>
+              <button class="btn-text">Close</button>
+            </div>
+          </div>
+
+          <div class="exception-item">
+            <div class="ex-left">
+              <div class="ex-title">
+                <span class="badge badge-quality-fail">QUALITY ISSUE</span>
+                <span class="ex-bold">Route RT-099 &middot; Isaac Tetteh</span>
+              </div>
+              <div class="ex-desc">3 bags failed on arrival, pending renegotiation - flagged 19h ago</div>
+            </div>
+            <div class="ex-right">
+              <div class="input-with-icon-sm">
+                <input type="text" placeholder="dd/mm/yyyy">
+                <span class="calendar-icon">&#128197;</span>
+              </div>
+              <button class="btn-outline">Reschedule</button>
+              <button class="btn-text">Close</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
