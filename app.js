@@ -21,16 +21,34 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Basic filter tab logic for aesthetics
-  const filterTabs = document.querySelectorAll('.filter-tab');
-  filterTabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-      const parent = tab.closest('.filter-tabs');
-      if (parent) {
-        const siblings = parent.querySelectorAll('.filter-tab');
-        siblings.forEach(s => s.classList.remove('active'));
+  // Filter logic for Stage 1 Table
+  const stage1 = document.getElementById('stage1');
+  if (stage1) {
+    const filterTabs = stage1.querySelectorAll('.filter-tab');
+    const tableRows = stage1.querySelectorAll('.data-table tbody tr');
+
+    filterTabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        // Update active class on tabs
+        filterTabs.forEach(t => t.classList.remove('active'));
         tab.classList.add('active');
-      }
+
+        const filterValue = tab.textContent.trim().toUpperCase();
+
+        // Filter table rows
+        tableRows.forEach(row => {
+          const badge = row.querySelector('.badge');
+          if (!badge) return;
+
+          const rowStatus = badge.textContent.trim().toUpperCase();
+
+          if (filterValue === 'ALL' || rowStatus === filterValue) {
+            row.style.display = '';
+          } else {
+            row.style.display = 'none';
+          }
+        });
+      });
     });
-  });
+  }
 });
