@@ -272,7 +272,7 @@
               <td><span class="badge badge-fulfilled">RECEIVED</span></td>
               <td></td>
             </tr>
-            <tr>
+            <tr data-route-id="RT-102" data-driver="Mustapha Ali" data-vehicle="GT-9134-20" data-stops='[]'>
               <td class="font-bold">RT-102</td>
               <td>2026-08-04</td>
               <td>Mustapha Ali</td>
@@ -280,9 +280,9 @@
               <td>0 stops</td>
               <td>0 bags</td>
               <td><span class="badge badge-unassigned">PLANNED</span></td>
-              <td><button class="btn-outline">Dispatch</button></td>
+              <td><button class="btn-outline dispatch-btn">Dispatch</button></td>
             </tr>
-            <tr>
+            <tr data-route-id="RT-299" data-driver="lakshmi" data-vehicle="GT-9134-20" data-stops='[{"name":"Ama Serwaa","location":"Twifo Praso","bags":28},{"name":"Kofi Antwi","location":"Jukwa","bags":12}]'>
               <td class="font-bold">RT-299</td>
               <td>2026-08-04</td>
               <td>lakshmi</td>
@@ -290,7 +290,7 @@
               <td>2 stops</td>
               <td>40 bags</td>
               <td><span class="badge badge-unassigned">PLANNED</span></td>
-              <td><button class="btn-outline">Dispatch</button></td>
+              <td><button class="btn-outline dispatch-btn">Dispatch</button></td>
             </tr>
             <tr>
               <td class="font-bold">RT-099</td>
@@ -335,8 +335,10 @@
         </div>
       </div>
 
-      <div class="empty-state">
-        No vehicles on the road. Dispatch a planned route to start tracking.
+      <div id="transit-grid" class="transit-grid">
+        <div class="empty-state" id="transit-empty-state">
+          No vehicles on the road. Dispatch a planned route to start tracking.
+        </div>
       </div>
     </section>
 

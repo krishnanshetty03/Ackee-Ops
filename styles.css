@@ -701,3 +701,176 @@ body {
 .pending-item.selected {
   background-color: rgba(48, 209, 88, 0.1);
 }
+
+/* ─── Transit Tracking Cards ──────────────────────────────── */
+.transit-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.transit-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.transit-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 1rem 1.25rem 0.75rem;
+}
+
+.tc-route-id {
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.tc-meta {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.tc-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.35rem;
+}
+
+.tc-ping {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  cursor: pointer;
+}
+.tc-ping:hover { color: var(--brand-green); }
+
+/* Grid map area */
+.transit-map {
+  position: relative;
+  margin: 0 1.25rem 0.75rem;
+  height: 100px;
+  background-color: var(--bg-dark);
+  border: 1px solid var(--border-color);
+  border-radius: 2px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gps-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(48, 209, 88, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(48, 209, 88, 0.06) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.no-gps-label {
+  position: relative;
+  z-index: 1;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-family: var(--font-mono);
+}
+
+/* Stops header */
+.transit-stops-header {
+  padding: 0.5rem 1.25rem;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.5px;
+  border-top: 1px solid var(--border-color);
+}
+
+/* Stop row */
+.transit-stops-list {
+  padding-bottom: 0.5rem;
+}
+
+.transit-stop {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 1.25rem;
+  border-top: 1px solid var(--border-color);
+  transition: background-color 0.2s;
+}
+
+.transit-stop:hover {
+  background-color: var(--bg-card-hover);
+}
+
+.transit-stop.stop-completed {
+  opacity: 0.45;
+}
+
+.stop-num {
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  width: 16px;
+  flex-shrink: 0;
+}
+
+.stop-info {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.stop-name {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.stop-loc {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  margin-top: 0.15rem;
+}
+
+.stop-bags {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  width: 30px;
+  text-align: right;
+}
+
+.btn-done {
+  background-color: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  padding: 0.3rem 0.65rem;
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.btn-done:hover:not(:disabled) {
+  border-color: var(--brand-green);
+  color: var(--brand-green);
+}
+
+.btn-done:disabled {
+  color: var(--brand-green);
+  border-color: rgba(48, 209, 88, 0.3);
+  cursor: default;
+}
+
+.transit-no-stops {
+  padding: 1rem 1.25rem;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
