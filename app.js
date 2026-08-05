@@ -109,6 +109,24 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       showToast('Route created successfully!', false);
     });
+
+    // Dispatch button logic
+    const dispatchBtns = stage2.querySelectorAll('.routes-section .btn-outline');
+    dispatchBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const row = e.target.closest('tr');
+        const badge = row.querySelector('.badge');
+        
+        // Update badge
+        badge.className = 'badge badge-assigned';
+        badge.textContent = 'DISPATCHED';
+        
+        // Remove button
+        e.target.remove();
+        
+        showToast('Route dispatched successfully!', false);
+      });
+    });
   }
 
   function showToast(message, isError) {
