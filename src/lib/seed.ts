@@ -1,9 +1,12 @@
 import { FACTORY, FARM_COMMUNITIES, jitter } from './geo'
+import { todayIso } from './format'
 import type {
   Driver,
   ExceptionItem,
   Farmer,
+  FarmerNote,
   FarmerRequest,
+  FollowUpTask,
   Route,
   Shipment,
   StaffMember,
@@ -19,12 +22,12 @@ export const STAFF_USER: StaffMember = {
 }
 
 export const FARMERS: Farmer[] = [
-  { id: 'FM-01', name: 'Kwame Owusu', phone: '+233 24 118 2290', community: 'Ejisu', initials: 'KO', avatarHue: 28, memberSince: '2023-03-11' },
-  { id: 'FM-02', name: 'Ama Boateng', phone: '+233 20 774 5581', community: 'Bekwai', initials: 'AB', avatarHue: 152, memberSince: '2022-11-02' },
-  { id: 'FM-03', name: 'Kofi Asante', phone: '+233 27 902 3317', community: 'Mampong', initials: 'KA', avatarHue: 205, memberSince: '2024-01-19' },
-  { id: 'FM-04', name: 'Akosua Mensah', phone: '+233 55 331 0087', community: 'Konongo', initials: 'AM', avatarHue: 340, memberSince: '2023-07-06' },
-  { id: 'FM-05', name: 'Yaw Darko', phone: '+233 24 660 4412', community: 'Juaben', initials: 'YD', avatarHue: 42, memberSince: '2021-09-23' },
-  { id: 'FM-06', name: 'Abena Osei', phone: '+233 26 118 9954', community: 'Offinso', initials: 'AO', avatarHue: 190, memberSince: '2024-04-02' },
+  { id: 'FM-01', name: 'Kwame Owusu', phone: '+233 24 118 2290', community: 'Ejisu', initials: 'KO', avatarHue: 28, memberSince: '2023-03-11', tags: ['Preferred Supplier'] },
+  { id: 'FM-02', name: 'Ama Boateng', phone: '+233 20 774 5581', community: 'Bekwai', initials: 'AB', avatarHue: 152, memberSince: '2022-11-02', tags: [] },
+  { id: 'FM-03', name: 'Kofi Asante', phone: '+233 27 902 3317', community: 'Mampong', initials: 'KA', avatarHue: 205, memberSince: '2024-01-19', tags: [] },
+  { id: 'FM-04', name: 'Akosua Mensah', phone: '+233 55 331 0087', community: 'Konongo', initials: 'AM', avatarHue: 340, memberSince: '2023-07-06', tags: ['High Volume', 'Reliable'] },
+  { id: 'FM-05', name: 'Yaw Darko', phone: '+233 24 660 4412', community: 'Juaben', initials: 'YD', avatarHue: 42, memberSince: '2021-09-23', tags: ['Reliable'] },
+  { id: 'FM-06', name: 'Abena Osei', phone: '+233 26 118 9954', community: 'Offinso', initials: 'AO', avatarHue: 190, memberSince: '2024-04-02', tags: ['Needs Follow-up'] },
 ]
 
 export const VEHICLES: Vehicle[] = [
@@ -63,6 +66,7 @@ function locationFor(farmer: Farmer, labelSuffix: string) {
 const T0 = Date.now()
 const MIN = 60_000
 const HOUR = 60 * MIN
+const DAY = 24 * HOUR
 
 export function buildSeed() {
   const requests: FarmerRequest[] = [
@@ -75,7 +79,7 @@ export function buildSeed() {
       estimatedBags: 14,
       requestType: 'staff_pickup',
       status: 'fulfilled',
-      createdAt: T0 - 26 * HOUR,
+      createdAt: T0 - 4.5 * DAY,
       routeId: 'RT-031',
     },
     {
@@ -144,18 +148,18 @@ export function buildSeed() {
       requestIds: ['REQ-118'],
       vehicleId: 'VH-5',
       driverId: 'DR-5',
-      scheduledDate: new Date(T0 - 26 * HOUR).toISOString().slice(0, 10),
+      scheduledDate: todayIso(T0 - 4.5 * DAY),
       totalEstimatedBags: 14,
       status: 'completed',
-      createdAt: T0 - 27 * HOUR,
-      dispatchedAt: T0 - 26 * HOUR,
+      createdAt: T0 - 4.6 * DAY,
+      dispatchedAt: T0 - 4.5 * DAY,
     },
     {
       id: 'RT-041',
       requestIds: ['REQ-142', 'REQ-143'],
       vehicleId: 'VH-2',
       driverId: 'DR-2',
-      scheduledDate: new Date(T0).toISOString().slice(0, 10),
+      scheduledDate: todayIso(T0),
       totalEstimatedBags: 40,
       status: 'dispatched',
       createdAt: T0 - 3 * HOUR,
@@ -209,7 +213,7 @@ export function buildSeed() {
       bags: 14,
       quality: 'pass',
       packaging: 'unopened',
-      receivedAt: T0 - 25 * HOUR,
+      receivedAt: T0 - 4.5 * DAY,
       freshnessHours: 108,
       receivedBy: STAFF_USER.name,
     },
@@ -237,6 +241,33 @@ export function buildSeed() {
       freshnessHours: 48,
       receivedBy: STAFF_USER.name,
     },
+    // earlier cycles, kept for lifetime-volume history on the CRM profile —
+    // dated further back than any current request, so they don't affect
+    // "last activity" / going-quiet status, only lifetime totals.
+    {
+      id: 'STK-FM-02-p1',
+      shipmentId: 'SHP-011',
+      farmerId: 'FM-02',
+      farmerName: 'Ama Boateng',
+      bags: 16,
+      quality: 'pass',
+      packaging: 'unopened',
+      receivedAt: T0 - 12 * DAY,
+      freshnessHours: 108,
+      receivedBy: STAFF_USER.name,
+    },
+    {
+      id: 'STK-FM-05-p2',
+      shipmentId: 'SHP-009',
+      farmerId: 'FM-05',
+      farmerName: 'Yaw Darko',
+      bags: 22,
+      quality: 'pass',
+      packaging: 'unopened',
+      receivedAt: T0 - 19 * DAY,
+      freshnessHours: 108,
+      receivedBy: STAFF_USER.name,
+    },
   ]
 
   const exceptions: ExceptionItem[] = [
@@ -251,7 +282,43 @@ export function buildSeed() {
     },
   ]
 
-  return { requests, routes, shipments, stock, exceptions }
+  const farmerNotes: FarmerNote[] = [
+    {
+      id: 'NOTE-001',
+      farmerId: 'FM-01',
+      authorName: STAFF_USER.name,
+      text: "Hasn't responded to our check-in message — may be selling to another buyer nearby. Worth a phone call before we lose him.",
+      createdAt: T0 - 1.5 * DAY,
+    },
+    {
+      id: 'NOTE-002',
+      farmerId: 'FM-06',
+      authorName: STAFF_USER.name,
+      text: 'Talked through the failed batch with her — says heavy rain affected drying. Offered to send our drying guidance sheet.',
+      createdAt: T0 - 4 * HOUR,
+    },
+  ]
+
+  const followUpTasks: FollowUpTask[] = [
+    {
+      id: 'TASK-001',
+      farmerId: 'FM-01',
+      note: 'Call Kwame about harvest status — 4+ days quiet',
+      dueDate: todayIso(T0),
+      done: false,
+      createdAt: T0 - 1.5 * DAY,
+    },
+    {
+      id: 'TASK-002',
+      farmerId: 'FM-06',
+      note: 'Follow up on drying technique after quality fail',
+      dueDate: todayIso(T0 + 2 * DAY),
+      done: false,
+      createdAt: T0 - 4 * HOUR,
+    },
+  ]
+
+  return { requests, routes, shipments, stock, exceptions, farmerNotes, followUpTasks }
 }
 
 export { locationFor }

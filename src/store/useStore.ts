@@ -8,7 +8,9 @@ import type {
   ExceptionItem,
   ExceptionType,
   Farmer,
+  FarmerNote,
   FarmerRequest,
+  FollowUpTask,
   GeoPoint,
   QualityResult,
   Route,
@@ -25,17 +27,20 @@ import type {
 import { DRIVERS, FARMERS, STAFF_USER, VEHICLES, buildSeed, locationFor } from '../lib/seed'
 import {
   nextExceptionId,
+  nextNoteId,
   nextNotifId,
   nextRequestId,
   nextRouteId,
   nextShipmentId,
   nextStockId,
+  nextTaskId,
+  todayIso,
 } from '../lib/format'
 import { FACTORY } from '../lib/geo'
 import { loadPersisted, persistAndBroadcast, resetPersisted, subscribeRemote } from '../lib/sync'
 import { bagQuickReplyOptions, copy, dropoffTimingOptions, pickupTypeOptions, statusEmoji, statusLabel } from '../lib/chatCopy'
 
-const PERSIST_VERSION = 3
+const PERSIST_VERSION = 4
 
 interface DataSlice {
   version: number
@@ -51,6 +56,8 @@ interface DataSlice {
   notifications: AppNotification[]
   chat: Record<string, ChatMessage[]>
   chatStage: Record<string, ChatStage>
+  farmerNotes: FarmerNote[]
+  followUpTasks: FollowUpTask[]
   now: number
 }
 
@@ -125,6 +132,12 @@ type Actions = {
   // ---- driver self-service ----
   toggleDriverAvailability: (driverId: string) => void
 
+  // ---- farmer CRM ----
+  addFarmerNote: (farmerId: string, text: string) => void
+  toggleFarmerTag: (farmerId: string, tag: string) => void
+  addFollowUpTask: (farmerId: string, note: string, dueDate: string) => void
+  toggleFollowUpTask: (taskId: string) => void
+
   // ---- ui ----
   setView: (v: AppView) => void
   setStaffTab: (t: StaffTab) => void
@@ -172,6 +185,8 @@ function freshState(): DataSlice {
     ],
     chat: {},
     chatStage: {},
+    farmerNotes: seed.farmerNotes,
+    followUpTasks: seed.followUpTasks,
     now: Date.now(),
   }
 }
@@ -390,7 +405,7 @@ export const useTallawahStore = create<Store>((set, get) => ({
     if (!route) return
     const driver = s.drivers.find((d) => d.id === route.driverId)!
     const vehicle = s.vehicles.find((v) => v.id === route.vehicleId)!
-    const dateLabel = route.scheduledDate === new Date().toISOString().slice(0, 10) ? 'today' : route.scheduledDate
+    const dateLabel = route.scheduledDate === todayIso(s.now) ? 'today' : route.scheduledDate
 
     let chat = s.chat
     const relatedRequests = s.requests.filter((r) => route.requestIds.includes(r.id))
@@ -600,6 +615,29 @@ export const useTallawahStore = create<Store>((set, get) => ({
       }),
     })),
 
+  // ================= FARMER CRM =================
+  addFarmerNote: (farmerId, text) => {
+    const trimmed = text.trim()
+    if (!trimmed) return
+    const s = get()
+    const note: FarmerNote = { id: nextNoteId(), farmerId, authorName: s.staff.name, text: trimmed, createdAt: Date.now() }
+    set((st) => ({ farmerNotes: [note, ...st.farmerNotes] }))
+  },
+  toggleFarmerTag: (farmerId, tag) =>
+    set((s) => ({
+      farmers: s.farmers.map((f) => (f.id === farmerId ? { ...f, tags: f.tags.includes(tag) ? f.tags.filter((t) => t !== tag) : [...f.tags, tag] } : f)),
+    })),
+  addFollowUpTask: (farmerId, note, dueDate) => {
+    const trimmed = note.trim()
+    if (!trimmed) return
+    const task: FollowUpTask = { id: nextTaskId(), farmerId, note: trimmed, dueDate, done: false, createdAt: Date.now() }
+    set((st) => ({ followUpTasks: [task, ...st.followUpTasks] }))
+  },
+  toggleFollowUpTask: (taskId) =>
+    set((s) => ({
+      followUpTasks: s.followUpTasks.map((t) => (t.id === taskId ? { ...t, done: !t.done, completedAt: !t.done ? Date.now() : undefined } : t)),
+    })),
+
   // ================= UI =================
   setView: (view) => set({ view, spotlight: null }),
   setStaffTab: (staffTab) => set({ staffTab }),
@@ -661,8 +699,8 @@ export function startSync() {
   syncStarted = true
   useTallawahStore.subscribe((state) => {
     if (applyingRemote) return
-    const { version, farmers, drivers, vehicles, staff, requests, routes, shipments, stock, exceptions, notifications, chat, chatStage, now } = state
-    persistAndBroadcast({ version, farmers, drivers, vehicles, staff, requests, routes, shipments, stock, exceptions, notifications, chat, chatStage, now })
+    const { version, farmers, drivers, vehicles, staff, requests, routes, shipments, stock, exceptions, notifications, chat, chatStage, farmerNotes, followUpTasks, now } = state
+    persistAndBroadcast({ version, farmers, drivers, vehicles, staff, requests, routes, shipments, stock, exceptions, notifications, chat, chatStage, farmerNotes, followUpTasks, now })
   })
   subscribeRemote<any>((remote) => {
     if (!remote || remote.version !== PERSIST_VERSION) return

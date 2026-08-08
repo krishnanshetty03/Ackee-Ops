@@ -9,6 +9,9 @@ import {
   selectCapacityKpis,
   selectExceptionKpis,
   selectIntakeKpis,
+  selectOpenFollowUps,
+  selectOverdueFollowUpCount,
+  selectQuietFarmers,
   selectReceivingKpis,
   selectTrackingKpis,
 } from '../../../store/selectors'
@@ -47,6 +50,9 @@ export function Overview({ theme }: { theme: Theme }) {
   const receiving = useTallawahStore(selectReceivingKpis, shallow)
   const exceptions = useTallawahStore(selectExceptionKpis, shallow)
   const avgTurnaround = useTallawahStore(selectAvgTurnaroundMs)
+  const quietFarmerCount = useTallawahStore((st) => selectQuietFarmers(st).length)
+  const openFollowUpCount = useTallawahStore((st) => selectOpenFollowUps(st).length)
+  const overdueFollowUpCount = useTallawahStore((st) => selectOverdueFollowUpCount(st))
   const notifications = useTallawahStore((st) => st.notifications)
   const drivers = useTallawahStore((st) => st.drivers)
   const vehicles = useTallawahStore((st) => st.vehicles)
@@ -153,6 +159,18 @@ export function Overview({ theme }: { theme: Theme }) {
               <span className={o.miniValue}>{fmtDuration(avgTurnaround)}</span>
               <span className={o.miniBadge}>Request → collected</span>
             </div>
+          </div>
+          <div className={o.miniRow}>
+            <button className={o.miniCard} onClick={() => setStaffTab('farmers')} style={{ textAlign: 'left', cursor: 'pointer' }}>
+              <span className={o.miniLabel}>Farmers going quiet</span>
+              <span className={o.miniValue}>{quietFarmerCount}</span>
+              <span className={[o.miniBadge, quietFarmerCount > 0 ? o.gold : ''].join(' ')}>{quietFarmerCount > 0 ? 'No activity in 3+ days' : 'Everyone engaged'}</span>
+            </button>
+            <button className={o.miniCard} onClick={() => setStaffTab('farmers')} style={{ textAlign: 'left', cursor: 'pointer' }}>
+              <span className={o.miniLabel}>Follow-ups due</span>
+              <span className={o.miniValue}>{openFollowUpCount}</span>
+              <span className={[o.miniBadge, overdueFollowUpCount > 0 ? o.warn : ''].join(' ')}>{overdueFollowUpCount > 0 ? `${overdueFollowUpCount} overdue` : 'On track'}</span>
+            </button>
           </div>
         </div>
 

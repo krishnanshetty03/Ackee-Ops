@@ -28,7 +28,7 @@ export function DriverHistory({ driverId }: { driverId: string }) {
               <div className={d.historyText}>
                 <div className={d.historyTitle}>{sh.id}</div>
                 <div className={d.historyMeta}>
-                  {sh.stops.length} stops · {fmtBags(bags)} · {sh.closedAt ? fmtDayLabel(new Date(sh.closedAt).toISOString().slice(0, 10), today) : ''}
+                  {sh.stops.length} stops · {fmtBags(bags)} · {sh.closedAt ? fmtDayLabel(todayIso(sh.closedAt), today) : ''}
                   {sh.closedAt ? ` · ${fmtClock(sh.closedAt)}` : ''}
                 </div>
               </div>

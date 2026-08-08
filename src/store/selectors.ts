@@ -1,9 +1,9 @@
-import { FLEET_CAPACITY, FLEET_SIZE } from '../lib/types'
+import { FARMER_QUIET_DAYS, FLEET_CAPACITY, FLEET_SIZE } from '../lib/types'
+import type { FarmerHealth } from '../lib/types'
+import { todayIso } from '../lib/format'
 import type { Store } from './useStore'
 
-export function todayIso(now: number) {
-  return new Date(now).toISOString().slice(0, 10)
-}
+export { todayIso }
 
 /** Stage 1 — Order Intake: queue health */
 export function selectIntakeKpis(s: Store) {
@@ -111,4 +111,138 @@ export function selectDriverPendingRoute(s: Store, driverId: string) {
 
 export function selectDriverHistory(s: Store, driverId: string) {
   return s.shipments.filter((sh) => sh.driverId === driverId && sh.status === 'received').sort((a, b) => (b.closedAt ?? 0) - (a.closedAt ?? 0))
+}
+
+// ==================== FARMER CRM ====================
+
+export interface FarmerTimelineEvent {
+  id: string
+  at: number
+  kind: 'request' | 'collected' | 'received' | 'exception'
+  title: string
+  desc: string
+  tone: 'gold' | 'green' | 'red'
+}
+
+/** A single chronological relationship history per farmer, merged from every
+ * business record that mentions them (requests, pickups, receiving, exceptions).
+ * Deliberately excludes raw WhatsApp chat — that's shown separately as its own
+ * conversational panel so this stays scannable as "what happened," not "what was said." */
+export function selectFarmerTimeline(s: Store, farmerId: string): FarmerTimelineEvent[] {
+  const events: FarmerTimelineEvent[] = []
+
+  for (const r of s.requests) {
+    if (r.farmerId !== farmerId) continue
+    events.push({
+      id: `req-${r.id}`,
+      at: r.createdAt,
+      kind: 'request',
+      title: `Request ${r.id} sent`,
+      desc: `${r.estimatedBags} bags · ${r.requestType === 'staff_pickup' ? 'team pickup' : 'self-drop'}`,
+      tone: 'gold',
+    })
+  }
+
+  for (const sh of s.shipments) {
+    for (const stop of sh.stops) {
+      if (stop.farmerId !== farmerId || stop.status !== 'completed' || !stop.completedAt) continue
+      events.push({
+        id: `stop-${sh.id}-${stop.requestId}`,
+        at: stop.completedAt,
+        kind: 'collected',
+        title: 'Collected by driver',
+        desc: `${stop.actualBags ?? stop.estimatedBags} bags · ${sh.id}`,
+        tone: 'green',
+      })
+    }
+  }
+
+  for (const e of s.stock) {
+    if (e.farmerId !== farmerId) continue
+    events.push({
+      id: `stk-${e.id}`,
+      at: e.receivedAt,
+      kind: 'received',
+      title: e.quality === 'pass' ? 'Received — quality passed' : 'Received — quality failed',
+      desc: `${e.bags} bags · ${e.packaging}`,
+      tone: e.quality === 'pass' ? 'green' : 'red',
+    })
+  }
+
+  for (const exc of s.exceptions) {
+    let belongs = false
+    if (exc.relatedType === 'request') {
+      belongs = s.requests.find((r) => r.id === exc.relatedId)?.farmerId === farmerId
+    } else if (exc.relatedType === 'shipment') {
+      belongs = !!s.shipments.find((sh) => sh.id === exc.relatedId)?.stops.some((st) => st.farmerId === farmerId)
+    }
+    if (!belongs) continue
+    events.push({ id: `exc-${exc.id}`, at: exc.createdAt, kind: 'exception', title: 'Exception flagged', desc: exc.note, tone: 'red' })
+  }
+
+  return events.sort((a, b) => b.at - a.at)
+}
+
+export interface FarmerStats {
+  lifetimeBags: number
+  totalRequests: number
+  qualityPassRate: number | null
+  avgTurnaroundMs: number | null
+  lastActivityAt: number | null
+}
+
+export function selectFarmerStats(s: Store, farmerId: string): FarmerStats {
+  const myStock = s.stock.filter((e) => e.farmerId === farmerId)
+  const pass = myStock.filter((e) => e.quality === 'pass')
+  const fail = myStock.filter((e) => e.quality === 'fail').length
+  const totalGraded = pass.length + fail
+
+  const turnarounds: number[] = []
+  for (const sh of s.shipments) {
+    for (const stop of sh.stops) {
+      if (stop.farmerId !== farmerId || stop.status !== 'completed' || !stop.completedAt) continue
+      const req = s.requests.find((r) => r.id === stop.requestId)
+      if (req) turnarounds.push(stop.completedAt - req.createdAt)
+    }
+  }
+
+  const timeline = selectFarmerTimeline(s, farmerId)
+  const lastFarmerMessage = (s.chat[farmerId] ?? []).filter((m) => m.from === 'farmer').reduce((max, m) => Math.max(max, m.createdAt), 0)
+  const lastActivityAt = Math.max(timeline[0]?.at ?? 0, lastFarmerMessage) || null
+
+  return {
+    lifetimeBags: pass.reduce((sum, e) => sum + e.bags, 0),
+    totalRequests: s.requests.filter((r) => r.farmerId === farmerId).length,
+    qualityPassRate: totalGraded === 0 ? null : pass.length / totalGraded,
+    avgTurnaroundMs: turnarounds.length === 0 ? null : turnarounds.reduce((a, b) => a + b, 0) / turnarounds.length,
+    lastActivityAt,
+  }
+}
+
+export function selectFarmerHealth(s: Store, farmerId: string): FarmerHealth {
+  const { lastActivityAt } = selectFarmerStats(s, farmerId)
+  if (!lastActivityAt) return 'quiet'
+  const daysSince = (s.now - lastActivityAt) / (24 * 3600_000)
+  return daysSince > FARMER_QUIET_DAYS ? 'quiet' : 'active'
+}
+
+export function selectQuietFarmers(s: Store) {
+  return s.farmers.filter((f) => selectFarmerHealth(s, f.id) === 'quiet')
+}
+
+export function selectFarmerNotes(s: Store, farmerId: string) {
+  return s.farmerNotes.filter((n) => n.farmerId === farmerId).sort((a, b) => b.createdAt - a.createdAt)
+}
+
+export function selectFarmerFollowUps(s: Store, farmerId: string) {
+  return s.followUpTasks.filter((t) => t.farmerId === farmerId).sort((a, b) => a.dueDate.localeCompare(b.dueDate))
+}
+
+export function selectOpenFollowUps(s: Store) {
+  return s.followUpTasks.filter((t) => !t.done).sort((a, b) => a.dueDate.localeCompare(b.dueDate))
+}
+
+export function selectOverdueFollowUpCount(s: Store) {
+  const today = todayIso(s.now)
+  return s.followUpTasks.filter((t) => !t.done && t.dueDate < today).length
 }

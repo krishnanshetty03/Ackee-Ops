@@ -2,9 +2,9 @@ import { useState, type ReactNode } from 'react'
 import { shallow } from 'zustand/shallow'
 import s from './staff.module.css'
 import { useTallawahStore } from '../../store/useStore'
-import { selectExceptionKpis, selectIntakeKpis, selectReceivingKpis, selectUnreadStaffNotifications } from '../../store/selectors'
+import { selectExceptionKpis, selectIntakeKpis, selectQuietFarmers, selectReceivingKpis, selectUnreadStaffNotifications } from '../../store/selectors'
 import { Avatar } from '../../components/ui/Avatar'
-import { Bell, BarChart, ListChecks, Route, Truck, Package, AlertTriangle, Search, LogOut } from '../../components/icons'
+import { Bell, BarChart, ListChecks, Route, Truck, Package, AlertTriangle, Search, LogOut, Users } from '../../components/icons'
 import { ThemeToggle } from '../../components/ui/ThemeToggle'
 import { fmtRelativeTime } from '../../lib/format'
 import type { StaffTab } from '../../lib/types'
@@ -12,6 +12,7 @@ import type { Theme } from '../../lib/useTheme'
 
 const NAV: { tab: StaffTab; label: string; icon: (p: { size?: number }) => JSX.Element }[] = [
   { tab: 'overview', label: 'Overview', icon: BarChart },
+  { tab: 'farmers', label: 'Farmers', icon: Users },
   { tab: 'intake', label: 'Order Intake', icon: ListChecks },
   { tab: 'dispatch', label: 'Dispatch Planning', icon: Route },
   { tab: 'tracking', label: 'In-Transit Tracking', icon: Truck },
@@ -40,8 +41,10 @@ export function StaffShell({
   const excKpi = useTallawahStore(selectExceptionKpis, shallow)
   const recvKpi = useTallawahStore(selectReceivingKpis, shallow)
   const unread = useTallawahStore(selectUnreadStaffNotifications)
+  const quietCount = useTallawahStore((st) => selectQuietFarmers(st).length)
 
   const countFor: Partial<Record<StaffTab, number>> = {
+    farmers: quietCount,
     intake: intakeKpi.pendingCount,
     exceptions: excKpi.openCount,
     receiving: recvKpi.awaitingCount,

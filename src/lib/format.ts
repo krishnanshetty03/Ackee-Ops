@@ -3,6 +3,8 @@ let routeSeq = 40
 let shipSeq = 40
 let excSeq = 10
 let notifSeq = 0
+let noteSeq = 2
+let taskSeq = 2
 
 export function nextRequestId() {
   reqSeq += 1
@@ -26,6 +28,14 @@ export function nextStockId(farmerId: string) {
 export function nextNotifId() {
   notifSeq += 1
   return `ntf-${notifSeq}-${Date.now()}`
+}
+export function nextNoteId() {
+  noteSeq += 1
+  return `NOTE-${String(noteSeq).padStart(3, '0')}`
+}
+export function nextTaskId() {
+  taskSeq += 1
+  return `TASK-${String(taskSeq).padStart(3, '0')}`
 }
 
 export function fmtBags(n: number) {
@@ -52,22 +62,27 @@ export function fmtClock(epochMs: number): string {
   })
 }
 
-export function fmtDayLabel(dateIso: string, todayIso: string): string {
-  if (dateIso === todayIso) return 'Today'
-  const tomorrow = new Date(todayIso)
-  tomorrow.setDate(tomorrow.getDate() + 1)
-  if (dateIso === tomorrow.toISOString().slice(0, 10)) return 'Tomorrow'
-  return new Date(dateIso).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })
+export function fmtDayLabel(dateIso: string, todayIsoStr: string): string {
+  if (dateIso === todayIsoStr) return 'Today'
+  if (dateIso === isoDaysFromNow(new Date(`${todayIsoStr}T12:00:00`).getTime(), 1)) return 'Tomorrow'
+  return new Date(`${dateIso}T12:00:00`).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })
 }
 
+// Local calendar date, not UTC — toISOString() is UTC and silently shows the
+// wrong day near midnight for any timezone ahead of UTC. "Today" for a
+// dispatch/follow-up date should always mean the staff member's own local day.
 export function todayIso(now: number): string {
-  return new Date(now).toISOString().slice(0, 10)
+  const d = new Date(now)
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
 }
 
 export function isoDaysFromNow(now: number, days: number): string {
   const d = new Date(now)
   d.setDate(d.getDate() + days)
-  return d.toISOString().slice(0, 10)
+  return todayIso(d.getTime())
 }
 
 export function fmtCountdown(msRemaining: number): string {

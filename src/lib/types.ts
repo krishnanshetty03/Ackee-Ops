@@ -25,6 +25,8 @@ export interface Farmer {
   initials: string
   avatarHue: number // deterministic color for avatar chip
   memberSince: string // ISO date
+  /** staff-assigned relationship labels — "Preferred Supplier", "High Volume", etc. */
+  tags: string[]
 }
 
 export interface FarmerRequest {
@@ -216,10 +218,38 @@ export type ChatStage =
   | { step: 'awaiting_location'; bags: number; type: RequestType }
   | { step: 'awaiting_dropoff_timing'; bags: number; type: RequestType }
 
+// ---------------- Farmer CRM ----------------
+
+export interface FarmerNote {
+  id: string
+  farmerId: string
+  authorName: string
+  text: string
+  createdAt: number
+}
+
+export interface FollowUpTask {
+  id: string
+  farmerId: string
+  note: string
+  dueDate: string // ISO date
+  done: boolean
+  createdAt: number
+  completedAt?: number
+}
+
+export type FarmerHealth = 'active' | 'quiet'
+
+export const FARMER_TAG_OPTIONS = ['Preferred Supplier', 'High Volume', 'Reliable', 'Needs Follow-up', 'At Risk'] as const
+
+/** no activity (request, receiving, or an outbound WhatsApp message) in this many
+ *  days marks a farmer as "going quiet" on the CRM and the Overview dashboard */
+export const FARMER_QUIET_DAYS = 3
+
 // ---------------- UI-only ephemeral state ----------------
 
 export type AppView = 'home' | 'farmer' | 'staff' | 'driver' | 'present'
-export type StaffTab = 'overview' | 'intake' | 'dispatch' | 'tracking' | 'receiving' | 'exceptions'
+export type StaffTab = 'overview' | 'intake' | 'dispatch' | 'tracking' | 'receiving' | 'exceptions' | 'farmers'
 export type DriverTab = 'home' | 'route' | 'history' | 'profile'
 
 export interface DemoCredential {

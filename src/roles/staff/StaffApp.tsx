@@ -1,6 +1,7 @@
 import { StaffShell } from './StaffShell'
 import { useTallawahStore } from '../../store/useStore'
 import { Overview } from './pages/Overview'
+import { Farmers } from './pages/Farmers'
 import { Intake } from './pages/Intake'
 import { Dispatch } from './pages/Dispatch'
 import { Tracking } from './pages/Tracking'
@@ -14,6 +15,7 @@ export function StaffApp({ theme, onToggleTheme, onSignOut }: { theme: Theme; on
   return (
     <StaffShell theme={theme} onToggleTheme={onToggleTheme} onSignOut={onSignOut}>
       {staffTab === 'overview' && <Overview theme={theme} />}
+      {staffTab === 'farmers' && <Farmers theme={theme} />}
       {staffTab === 'intake' && <Intake />}
       {staffTab === 'dispatch' && <Dispatch />}
       {staffTab === 'tracking' && <Tracking theme={theme} />}
