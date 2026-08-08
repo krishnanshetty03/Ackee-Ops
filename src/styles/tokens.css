@@ -1,0 +1,138 @@
+/* ============================================================
+   Tallawah Foods — Design tokens
+   Palette sampled from the brand mark (Jamaica + Ghana):
+   gold #F0C000 · green #007818 · red #D81E28 · charcoal #141414 · earth #7A3D18
+   Two hand-tuned themes: warm paper (light) & warm charcoal (dark).
+   ============================================================ */
+
+:root {
+  /* Type */
+  --font-display: 'Fraunces', 'Iowan Old Style', Georgia, serif;
+  --font-ui: 'Hanken Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  --font-wa: -apple-system, 'Segoe UI', 'Helvetica Neue', Roboto, sans-serif;
+
+  /* Radii */
+  --r-xs: 5px;
+  --r-sm: 8px;
+  --r: 11px;
+  --r-lg: 16px;
+  --r-xl: 22px;
+  --r-pill: 999px;
+
+  /* Motion */
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur: 0.22s;
+
+  /* Fixed brand hues (theme-independent fills) */
+  --brand-gold: #f0c000;
+  --brand-green: #0f7a34;
+  --brand-red: #d81e28;
+  --brand-black: #141414;
+
+  /* Kente accent ribbon */
+  --kente: repeating-linear-gradient(
+    90deg,
+    #0f7a34 0 14px,
+    #f0c000 14px 26px,
+    #141414 26px 30px,
+    #d81e28 30px 44px,
+    #141414 44px 48px
+  );
+}
+
+/* ---------------- Light: warm paper ---------------- */
+:root,
+:root[data-theme='light'] {
+  color-scheme: light;
+
+  --bg: #f4efe3;
+  --bg-2: #ece5d5;
+  --grain: 0.035;
+
+  --surface: #fffdf8;
+  --surface-2: #faf6ec;
+  --surface-3: #f1ebdb;
+  --surface-inset: #efe8d7;
+
+  --text: #1c1810;
+  --text-2: #514a3b;
+  --muted: #8a8071;
+  --faint: #b4a992;
+
+  --border: #e6ddca;
+  --border-strong: #d5c9ae;
+  --line: #ede6d4;
+
+  --gold: #b07d05;        /* accessible gold for text/lines on paper */
+  --gold-ink: #7a5600;
+  --gold-fill: #f0c000;
+  --gold-soft: #fbeec2;
+
+  --green: #0f7a34;
+  --green-ink: #0a5325;
+  --green-soft: #dcefdd;
+
+  --red: #c01f28;
+  --red-ink: #8f1219;
+  --red-soft: #f8dedc;
+
+  --earth: #8a4a20;
+  --earth-soft: #efe0d1;
+
+  --accent: var(--gold);
+  --accent-contrast: #1c1810;
+
+  --shadow-sm: 0 1px 2px rgba(60, 42, 8, 0.08), 0 1px 1px rgba(60, 42, 8, 0.04);
+  --shadow: 0 6px 20px -8px rgba(60, 42, 8, 0.18), 0 2px 6px -2px rgba(60, 42, 8, 0.08);
+  --shadow-lg: 0 24px 60px -18px rgba(50, 34, 6, 0.32), 0 8px 20px -10px rgba(50, 34, 6, 0.16);
+  --ring: 0 0 0 3px rgba(240, 192, 0, 0.32);
+}
+
+/* ---------------- Dark: warm charcoal ---------------- */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --bg: #131110;
+  --bg-2: #0d0c0b;
+  --grain: 0.05;
+
+  --surface: #1c1915;
+  --surface-2: #232019;
+  --surface-3: #2b271f;
+  --surface-inset: #16130f;
+
+  --text: #f4eee0;
+  --text-2: #cabfa9;
+  --muted: #93876f;
+  --faint: #6a604e;
+
+  --border: #2f2a21;
+  --border-strong: #423a2d;
+  --line: #262119;
+
+  --gold: #f0c000;
+  --gold-ink: #ffd93b;
+  --gold-fill: #f0c000;
+  --gold-soft: #352c0f;
+
+  --green: #38a75a;
+  --green-ink: #56c877;
+  --green-soft: #15301e;
+
+  --red: #ea5a62;
+  --red-ink: #ff7b81;
+  --red-soft: #37191b;
+
+  --earth: #cf9160;
+  --earth-soft: #2f2318;
+
+  --accent: var(--gold);
+  --accent-contrast: #1c1810;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow: 0 10px 28px -12px rgba(0, 0, 0, 0.6), 0 2px 8px -3px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 32px 70px -20px rgba(0, 0, 0, 0.7), 0 10px 24px -12px rgba(0, 0, 0, 0.55);
+  --ring: 0 0 0 3px rgba(240, 192, 0, 0.28);
+}

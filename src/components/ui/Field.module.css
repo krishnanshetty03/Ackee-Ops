@@ -1,0 +1,163 @@
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.hint {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.input,
+.select,
+.textarea {
+  width: 100%;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  border-radius: var(--r-sm);
+  padding: 9px 11px;
+  font-size: 13px;
+  color: var(--text);
+  transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+}
+.input:focus,
+.select:focus,
+.textarea:focus {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow: var(--ring);
+}
+.input::placeholder,
+.textarea::placeholder {
+  color: var(--faint);
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 72px;
+  line-height: 1.5;
+}
+
+.select {
+  appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23968a6f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M5.5 9 12 15.5 18.5 9'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 15px;
+  padding-right: 32px;
+}
+
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-sm);
+  overflow: hidden;
+  background: var(--surface);
+}
+.stepperBtn {
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-2);
+  background: var(--surface-2);
+  flex: none;
+}
+.stepperBtn:hover:not(:disabled) {
+  background: var(--surface-3);
+  color: var(--text);
+}
+.stepperBtn:disabled {
+  opacity: 0.4;
+}
+.stepperValue {
+  width: 56px;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 14px;
+  border: none;
+  background: transparent;
+  color: var(--text);
+}
+
+.radioCards {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.radioCard {
+  flex: 1;
+  min-width: 100px;
+  border: 1.5px solid var(--border-strong);
+  border-radius: var(--r-sm);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: var(--surface);
+  text-align: left;
+}
+.radioCard:hover {
+  border-color: var(--gold);
+}
+.radioCard.selected {
+  border-color: var(--gold);
+  background: var(--gold-soft);
+}
+.radioCard.selectedGreen {
+  border-color: var(--green);
+  background: var(--green-soft);
+}
+.radioCard.selectedRed {
+  border-color: var(--red);
+  background: var(--red-soft);
+}
+.radioCardTitle {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.radioCardDesc {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.checkboxRow {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.checkbox {
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  border: 1.6px solid var(--border-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  background: var(--surface);
+  color: transparent;
+}
+.checkbox.checked {
+  background: var(--brand-black);
+  border-color: var(--brand-black);
+  color: var(--gold-fill);
+}

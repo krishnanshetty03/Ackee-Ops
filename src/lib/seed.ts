@@ -1,0 +1,257 @@
+import { FACTORY, FARM_COMMUNITIES, jitter } from './geo'
+import type {
+  Driver,
+  ExceptionItem,
+  Farmer,
+  FarmerRequest,
+  Route,
+  Shipment,
+  StaffMember,
+  StockEntry,
+  Vehicle,
+} from './types'
+
+export const STAFF_USER: StaffMember = {
+  id: 'staff-1',
+  name: 'Adjoa Sarpong',
+  role: 'Dispatch Lead',
+  initials: 'AS',
+}
+
+export const FARMERS: Farmer[] = [
+  { id: 'FM-01', name: 'Kwame Owusu', phone: '+233 24 118 2290', community: 'Ejisu', initials: 'KO', avatarHue: 28, memberSince: '2023-03-11' },
+  { id: 'FM-02', name: 'Ama Boateng', phone: '+233 20 774 5581', community: 'Bekwai', initials: 'AB', avatarHue: 152, memberSince: '2022-11-02' },
+  { id: 'FM-03', name: 'Kofi Asante', phone: '+233 27 902 3317', community: 'Mampong', initials: 'KA', avatarHue: 205, memberSince: '2024-01-19' },
+  { id: 'FM-04', name: 'Akosua Mensah', phone: '+233 55 331 0087', community: 'Konongo', initials: 'AM', avatarHue: 340, memberSince: '2023-07-06' },
+  { id: 'FM-05', name: 'Yaw Darko', phone: '+233 24 660 4412', community: 'Juaben', initials: 'YD', avatarHue: 42, memberSince: '2021-09-23' },
+  { id: 'FM-06', name: 'Abena Osei', phone: '+233 26 118 9954', community: 'Offinso', initials: 'AO', avatarHue: 190, memberSince: '2024-04-02' },
+]
+
+export const VEHICLES: Vehicle[] = [
+  { id: 'VH-1', plate: 'AS 2451-23', model: 'Canter Flatbed', capacityBags: 120 },
+  { id: 'VH-2', plate: 'AS 7788-22', model: 'Canter Flatbed', capacityBags: 120 },
+  { id: 'VH-3', plate: 'AS 3390-24', model: 'Hyundai Mighty', capacityBags: 120 },
+  { id: 'VH-4', plate: 'AS 5512-21', model: 'Canter Flatbed', capacityBags: 120 },
+  { id: 'VH-5', plate: 'AS 9021-24', model: 'Hyundai Mighty', capacityBags: 120 },
+]
+
+export const DRIVERS: Driver[] = [
+  { id: 'DR-1', name: 'Kojo Mensah', phone: '+233 24 552 8871', vehicleId: 'VH-1', status: 'available', avatarHue: 18, initials: 'KM', homeLocation: { lat: FACTORY.lat + 0.01, lng: FACTORY.lng - 0.01 } },
+  { id: 'DR-2', name: 'Yaw Boakye', phone: '+233 27 340 9012', vehicleId: 'VH-2', status: 'available', avatarHue: 265, initials: 'YB', homeLocation: { lat: FACTORY.lat - 0.008, lng: FACTORY.lng + 0.012 } },
+  { id: 'DR-3', name: 'Nana Adusei', phone: '+233 20 118 7742', vehicleId: 'VH-3', status: 'available', avatarHue: 95, initials: 'NA', homeLocation: { lat: FACTORY.lat + 0.006, lng: FACTORY.lng + 0.009 } },
+  { id: 'DR-4', name: 'Comfort Appiah', phone: '+233 55 887 2201', vehicleId: 'VH-4', status: 'available', avatarHue: 322, initials: 'CA', homeLocation: { lat: FACTORY.lat - 0.012, lng: FACTORY.lng - 0.006 } },
+  { id: 'DR-5', name: 'Isaac Frimpong', phone: '+233 24 003 6612', vehicleId: 'VH-5', status: 'off_duty', avatarHue: 48, initials: 'IF', homeLocation: { lat: FACTORY.lat + 0.014, lng: FACTORY.lng + 0.002 } },
+]
+
+function communityFor(name: string) {
+  return FARM_COMMUNITIES.find((c) => c.community === name) ?? FARM_COMMUNITIES[0]
+}
+
+function locationFor(farmer: Farmer, labelSuffix: string) {
+  const base = communityFor(farmer.community)
+  const p = jitter(base, 2.4)
+  return {
+    label: `${farmer.name.split(' ')[0]}'s farm${labelSuffix}`,
+    community: farmer.community,
+    lat: p.lat,
+    lng: p.lng,
+  }
+}
+
+// ---- A day already partway in progress, so the dashboards read as "live ops" ----
+// Timestamps are relative to seed time (module load = "now" for demo purposes).
+const T0 = Date.now()
+const MIN = 60_000
+const HOUR = 60 * MIN
+
+export function buildSeed() {
+  const requests: FarmerRequest[] = [
+    {
+      id: 'REQ-118',
+      farmerId: 'FM-01',
+      farmerName: 'Kwame Owusu',
+      farmerPhone: FARMERS[0].phone,
+      location: locationFor(FARMERS[0], ''),
+      estimatedBags: 14,
+      requestType: 'staff_pickup',
+      status: 'fulfilled',
+      createdAt: T0 - 26 * HOUR,
+      routeId: 'RT-031',
+    },
+    {
+      id: 'REQ-142',
+      farmerId: 'FM-03',
+      farmerName: 'Kofi Asante',
+      farmerPhone: FARMERS[2].phone,
+      location: locationFor(FARMERS[2], ''),
+      estimatedBags: 22,
+      requestType: 'staff_pickup',
+      status: 'assigned',
+      createdAt: T0 - 3 * HOUR,
+      routeId: 'RT-041',
+    },
+    {
+      id: 'REQ-143',
+      farmerId: 'FM-05',
+      farmerName: 'Yaw Darko',
+      farmerPhone: FARMERS[4].phone,
+      location: locationFor(FARMERS[4], ''),
+      estimatedBags: 18,
+      requestType: 'staff_pickup',
+      status: 'assigned',
+      createdAt: T0 - 2.6 * HOUR,
+      routeId: 'RT-041',
+    },
+    {
+      id: 'REQ-144',
+      farmerId: 'FM-02',
+      farmerName: 'Ama Boateng',
+      farmerPhone: FARMERS[1].phone,
+      location: locationFor(FARMERS[1], ''),
+      estimatedBags: 9,
+      requestType: 'self_drop',
+      status: 'unassigned',
+      createdAt: T0 - 1.4 * HOUR,
+    },
+    {
+      id: 'REQ-145',
+      farmerId: 'FM-04',
+      farmerName: 'Akosua Mensah',
+      farmerPhone: FARMERS[3].phone,
+      location: locationFor(FARMERS[3], ''),
+      estimatedBags: 27,
+      requestType: 'staff_pickup',
+      status: 'unassigned',
+      createdAt: T0 - 55 * MIN,
+    },
+    {
+      id: 'REQ-146',
+      farmerId: 'FM-06',
+      farmerName: 'Abena Osei',
+      farmerPhone: FARMERS[5].phone,
+      location: locationFor(FARMERS[5], ''),
+      estimatedBags: 11,
+      requestType: 'staff_pickup',
+      status: 'flagged',
+      createdAt: T0 - 5 * HOUR,
+      exceptionId: 'EXC-004',
+    },
+  ]
+
+  const routes: Route[] = [
+    {
+      id: 'RT-031',
+      requestIds: ['REQ-118'],
+      vehicleId: 'VH-5',
+      driverId: 'DR-5',
+      scheduledDate: new Date(T0 - 26 * HOUR).toISOString().slice(0, 10),
+      totalEstimatedBags: 14,
+      status: 'completed',
+      createdAt: T0 - 27 * HOUR,
+      dispatchedAt: T0 - 26 * HOUR,
+    },
+    {
+      id: 'RT-041',
+      requestIds: ['REQ-142', 'REQ-143'],
+      vehicleId: 'VH-2',
+      driverId: 'DR-2',
+      scheduledDate: new Date(T0).toISOString().slice(0, 10),
+      totalEstimatedBags: 40,
+      status: 'dispatched',
+      createdAt: T0 - 3 * HOUR,
+      dispatchedAt: T0 - 40 * MIN,
+    },
+  ]
+
+  const req142 = requests.find((r) => r.id === 'REQ-142')!
+  const req143 = requests.find((r) => r.id === 'REQ-143')!
+
+  const shipments: Shipment[] = [
+    {
+      id: 'SHP-041',
+      routeId: 'RT-041',
+      driverId: 'DR-2',
+      vehicleId: 'VH-2',
+      status: 'active',
+      startedAt: T0 - 40 * MIN,
+      position: jitter({ lat: (FACTORY.lat + req142.location.lat) / 2, lng: (FACTORY.lng + req142.location.lng) / 2 }, 1),
+      legIndex: 0,
+      legProgress: 0.55,
+      legStartedAt: T0 - 0.55 * 16000,
+      legDurationMs: 16000,
+      stops: [
+        {
+          requestId: 'REQ-142',
+          farmerId: 'FM-03',
+          farmerName: 'Kofi Asante',
+          location: req142.location,
+          estimatedBags: 22,
+          status: 'pending',
+        },
+        {
+          requestId: 'REQ-143',
+          farmerId: 'FM-05',
+          farmerName: 'Yaw Darko',
+          location: req143.location,
+          estimatedBags: 18,
+          status: 'pending',
+        },
+      ],
+    },
+  ]
+
+  const stock: StockEntry[] = [
+    {
+      id: 'STK-FM-01-a1',
+      shipmentId: 'SHP-020',
+      farmerId: 'FM-01',
+      farmerName: 'Kwame Owusu',
+      bags: 14,
+      quality: 'pass',
+      packaging: 'unopened',
+      receivedAt: T0 - 25 * HOUR,
+      freshnessHours: 108,
+      receivedBy: STAFF_USER.name,
+    },
+    {
+      id: 'STK-FM-04-b2',
+      shipmentId: 'SHP-019',
+      farmerId: 'FM-04',
+      farmerName: 'Akosua Mensah',
+      bags: 20,
+      quality: 'pass',
+      packaging: 'open',
+      receivedAt: T0 - 30 * HOUR,
+      freshnessHours: 48,
+      receivedBy: STAFF_USER.name,
+    },
+    {
+      id: 'STK-FM-06-c3',
+      shipmentId: 'SHP-018',
+      farmerId: 'FM-06',
+      farmerName: 'Abena Osei',
+      bags: 8,
+      quality: 'fail',
+      packaging: 'open',
+      receivedAt: T0 - 33 * HOUR,
+      freshnessHours: 48,
+      receivedBy: STAFF_USER.name,
+    },
+  ]
+
+  const exceptions: ExceptionItem[] = [
+    {
+      id: 'EXC-004',
+      relatedType: 'request',
+      relatedId: 'REQ-146',
+      type: 'farmer_not_ready',
+      note: 'Abena says bags will be ready tomorrow morning instead — rain delayed drying.',
+      status: 'open',
+      createdAt: T0 - 4.5 * HOUR,
+    },
+  ]
+
+  return { requests, routes, shipments, stock, exceptions }
+}
+
+export { locationFor }

@@ -1,0 +1,62 @@
+.avatar {
+  --h: 40;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-family: var(--font-ui);
+  font-weight: 700;
+  flex: none;
+  background: linear-gradient(155deg, hsl(var(--h) 62% 62%), hsl(var(--h) 58% 46%));
+  color: #fff;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.18);
+  border: 1.5px solid color-mix(in srgb, hsl(var(--h) 58% 40%) 60%, transparent);
+  position: relative;
+}
+
+.xs {
+  width: 22px;
+  height: 22px;
+  font-size: 9px;
+}
+.sm {
+  width: 28px;
+  height: 28px;
+  font-size: 11px;
+}
+.md {
+  width: 36px;
+  height: 36px;
+  font-size: 13px;
+}
+.lg {
+  width: 52px;
+  height: 52px;
+  font-size: 18px;
+}
+.xl {
+  width: 76px;
+  height: 76px;
+  font-size: 26px;
+}
+
+.statusRing {
+  position: absolute;
+  bottom: -1px;
+  right: -1px;
+  width: 32%;
+  height: 32%;
+  min-width: 8px;
+  min-height: 8px;
+  border-radius: 50%;
+  border: 2px solid var(--surface);
+}
+.online {
+  background: var(--green);
+}
+.busy {
+  background: var(--gold-fill);
+}
+.offline {
+  background: var(--faint);
+}

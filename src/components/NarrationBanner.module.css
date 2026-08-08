@@ -1,0 +1,58 @@
+.wrap {
+  position: fixed;
+  left: 50%;
+  bottom: 22px;
+  transform: translateX(-50%);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  background: var(--brand-black);
+  color: #f4eee0;
+  padding: 11px 20px 11px 16px;
+  border-radius: var(--r-pill);
+  box-shadow: var(--shadow-lg);
+  font-size: 12.8px;
+  font-weight: 600;
+  max-width: min(560px, 88vw);
+  animation: bannerIn 0.3s var(--ease) both;
+  pointer-events: none;
+}
+
+@keyframes bannerIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--gold-fill);
+  flex: none;
+  animation: dotPulse 1.4s ease-in-out infinite;
+}
+
+@keyframes dotPulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(0.75);
+  }
+}
+
+.text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

@@ -1,0 +1,31 @@
+.toggle {
+  position: relative;
+  width: 52px;
+  height: 30px;
+  border-radius: var(--r-pill);
+  background: var(--surface-inset);
+  border: 1px solid var(--border-strong);
+  flex: none;
+  display: flex;
+  align-items: center;
+  padding: 2px;
+}
+
+.thumb {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: linear-gradient(155deg, #ffd83c, var(--gold-fill));
+  color: #241a02;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  transition: transform 0.28s var(--ease-in-out), background var(--dur);
+}
+
+:root[data-theme='dark'] .thumb {
+  transform: translateX(22px);
+  background: linear-gradient(155deg, #3a3226, #17140f);
+  color: #f0c000;
+}
