@@ -3,11 +3,13 @@ import d from './driver.module.css'
 import { useTallawahStore } from '../../store/useStore'
 import { selectDriverActiveShipment, selectDriverPendingRoute } from '../../store/selectors'
 import { Button } from '../../components/ui/Button'
-import { NumberStepper } from '../../components/ui/Field'
+import { CapacityMeter } from '../../components/ui/CapacityMeter'
+import { NumberStepper, RadioCards } from '../../components/ui/Field'
 import { EmptyState } from '../../components/ui/EmptyState'
 import { useToast } from '../../components/ui/Toast'
-import { Check, CheckCircle, Factory, MapPin, Navigation, Route as RouteIcon, Truck } from '../../components/icons'
+import { Check, CheckCircle, Factory, MapPin, Navigation, Route as RouteIcon, Truck, X } from '../../components/icons'
 import { fmtBags } from '../../lib/format'
+import type { QualityResult } from '../../lib/types'
 
 export function DriverRoute({ driverId }: { driverId: string }) {
   const requests = useTallawahStore((st) => st.requests)
@@ -20,6 +22,8 @@ export function DriverRoute({ driverId }: { driverId: string }) {
   const { push } = useToast()
 
   const [drafts, setDrafts] = useState<Record<string, number>>({})
+  const [packagingDrafts, setPackagingDrafts] = useState<Record<string, 'open' | 'unopened'>>({})
+  const [qualityDrafts, setQualityDrafts] = useState<Record<string, QualityResult>>({})
 
   useEffect(() => {
     if (!activeShipment) return
@@ -119,6 +123,8 @@ export function DriverRoute({ driverId }: { driverId: string }) {
   const doneCount = activeShipment.stops.filter((s) => s.status === 'completed').length
   const pct = (doneCount / activeShipment.stops.length) * 100
   const nearlyThere = activeShipment.legProgress >= 0.82
+  const bagsCollected = activeShipment.stops.reduce((sum, st) => sum + (st.actualBags ?? 0), 0)
+  const totalEstimatedBags = activeShipment.stops.reduce((sum, st) => sum + st.estimatedBags, 0)
 
   return (
     <>
@@ -131,6 +137,9 @@ export function DriverRoute({ driverId }: { driverId: string }) {
         </div>
         <div className={d.progressTrack}>
           <div className={d.progressFill} style={{ width: `${pct}%` }} />
+        </div>
+        <div style={{ marginTop: 13 }}>
+          <CapacityMeter value={bagsCollected} ceiling={totalEstimatedBags} label="Bags collected" />
         </div>
       </div>
 
@@ -191,12 +200,45 @@ export function DriverRoute({ driverId }: { driverId: string }) {
                           max={200}
                         />
                       </div>
+
+                      <div className={d.assessBlock}>
+                        <span className={d.bagEntryLabel}>Packaging</span>
+                        <RadioCards
+                          value={packagingDrafts[stop.requestId] ?? 'unopened'}
+                          onChange={(v) => setPackagingDrafts((prev) => ({ ...prev, [stop.requestId]: v }))}
+                          options={[
+                            { value: 'unopened', title: 'Unopened' },
+                            { value: 'open', title: 'Open' },
+                          ]}
+                        />
+                      </div>
+
+                      <div className={d.assessBlock}>
+                        <span className={d.bagEntryLabel}>Quality check</span>
+                        <RadioCards
+                          value={qualityDrafts[stop.requestId] ?? 'pass'}
+                          onChange={(v) => setQualityDrafts((prev) => ({ ...prev, [stop.requestId]: v }))}
+                          options={[
+                            { value: 'pass', title: 'Pass', icon: <Check size={13} />, tone: 'green' },
+                            { value: 'fail', title: 'Fail', icon: <X size={13} />, tone: 'red' },
+                          ]}
+                        />
+                      </div>
+
                       <div className={d.stopActions}>
                         <Button
                           variant="primary"
                           size="sm"
                           icon={<CheckCircle size={13} />}
-                          onClick={() => driverConfirmPickup(activeShipment.id, stop.requestId, drafts[stop.requestId] ?? stop.estimatedBags)}
+                          onClick={() =>
+                            driverConfirmPickup(
+                              activeShipment.id,
+                              stop.requestId,
+                              drafts[stop.requestId] ?? stop.estimatedBags,
+                              qualityDrafts[stop.requestId] ?? 'pass',
+                              packagingDrafts[stop.requestId] ?? 'unopened',
+                            )
+                          }
                         >
                           Confirm pickup
                         </Button>

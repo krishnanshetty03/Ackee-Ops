@@ -5,20 +5,13 @@ import { useTallawahStore } from '../../../store/useStore'
 import { Card, CardHeader } from '../../../components/ui/Card'
 import { Button } from '../../../components/ui/Button'
 import { Sheet } from '../../../components/ui/Sheet'
-import { NumberStepper, RadioCards, Select } from '../../../components/ui/Field'
-import { StatusBadge } from '../../../components/ui/Badge'
+import { NumberStepper } from '../../../components/ui/Field'
+import { Badge, StatusBadge } from '../../../components/ui/Badge'
 import { EmptyState } from '../../../components/ui/EmptyState'
 import { useToast } from '../../../components/ui/Toast'
-import { Check, CheckCircle, Factory, Package, X } from '../../../components/icons'
+import { Check, CheckCircle, Factory, Package } from '../../../components/icons'
 import { fmtBags, fmtClock, fmtCountdown } from '../../../lib/format'
 import { selectFreshnessRemaining } from '../../../store/selectors'
-import type { QualityResult } from '../../../lib/types'
-
-interface Line {
-  actualBags: number
-  quality: QualityResult
-  packaging: 'open' | 'unopened'
-}
 
 export function Receiving() {
   const shipments = useTallawahStore((st) => st.shipments)
@@ -30,7 +23,7 @@ export function Receiving() {
 
   const awaiting = shipments.filter((sh) => sh.status === 'arrived_factory').sort((a, b) => (a.arrivedFactoryAt ?? 0) - (b.arrivedFactoryAt ?? 0))
   const [openId, setOpenId] = useState<string | null>(null)
-  const [lines, setLines] = useState<Record<string, Line>>({})
+  const [bagDrafts, setBagDrafts] = useState<Record<string, number>>({})
 
   const openShipment = shipments.find((sh) => sh.id === openId)
   const openDriver = openShipment ? drivers.find((d) => d.id === openShipment.driverId) : undefined
@@ -38,27 +31,23 @@ export function Receiving() {
   function openReceiving(shipmentId: string) {
     const sh = shipments.find((x) => x.id === shipmentId)
     if (!sh) return
-    const init: Record<string, Line> = {}
+    const init: Record<string, number> = {}
     sh.stops.forEach((stop) => {
-      init[stop.requestId] = { actualBags: stop.actualBags ?? stop.estimatedBags, quality: 'pass', packaging: 'unopened' }
+      init[stop.requestId] = stop.actualBags ?? stop.estimatedBags
     })
-    setLines(init)
+    setBagDrafts(init)
     setOpenId(shipmentId)
   }
 
   function submit() {
     if (!openShipment) return
-    const payload = openShipment.stops.map((stop) => ({
-      requestId: stop.requestId,
-      actualBags: lines[stop.requestId]?.actualBags ?? stop.estimatedBags,
-      quality: lines[stop.requestId]?.quality ?? 'pass',
-      packaging: lines[stop.requestId]?.packaging ?? 'unopened',
-    }))
-    staffReceiveShipment(openShipment.id, payload)
-    const failCount = payload.filter((p) => p.quality === 'fail').length
+    staffReceiveShipment(openShipment.id, bagDrafts)
+    const failCount = openShipment.stops.filter((st) => st.quality === 'fail').length
+    const passCount = openShipment.stops.length - failCount
+    const line = (n: number) => `${n} line${n === 1 ? '' : 's'}`
     push({
       title: 'Shipment received',
-      body: failCount > 0 ? `${payload.length - failCount} lines passed, ${failCount} flagged for quality` : `All ${payload.length} lines passed quality`,
+      body: failCount > 0 ? `${line(passCount)} logged to stock, ${line(failCount)} already flagged by the driver` : `All ${line(passCount)} logged to stock`,
       kind: 'receiving',
     })
     setOpenId(null)
@@ -68,7 +57,7 @@ export function Receiving() {
 
   return (
     <PageInner>
-      <PageHead title="Arrival & Receiving" desc="Close out a shipment once it reaches the depot, verify what actually came in, and convert it into stock." />
+      <PageHead title="Arrival & Receiving" desc="Close out a shipment once it reaches the depot — confirm the bag count and log what the driver already inspected into stock." />
 
       <Card padded>
         <CardHeader title="Awaiting receiving" subtitle={`${awaiting.length} shipment${awaiting.length === 1 ? '' : 's'} at the gate`} />
@@ -165,8 +154,8 @@ export function Receiving() {
         }
       >
         {openShipment?.stops.map((stop) => {
-          const line = lines[stop.requestId]
-          if (!line) return null
+          const bags = bagDrafts[stop.requestId]
+          if (bags === undefined) return null
           return (
             <div key={stop.requestId} className={s.receivingLine}>
               <div className={s.receivingLineHead}>
@@ -176,30 +165,20 @@ export function Receiving() {
               <div className={s.receivingLineRow}>
                 <div>
                   <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-2)', marginBottom: 5 }}>Actual bags</div>
-                  <NumberStepper value={line.actualBags} onChange={(v) => setLines((prev) => ({ ...prev, [stop.requestId]: { ...prev[stop.requestId], actualBags: v } }))} min={0} max={200} />
+                  <NumberStepper value={bags} onChange={(v) => setBagDrafts((prev) => ({ ...prev, [stop.requestId]: v }))} min={0} max={200} />
                 </div>
                 <div>
                   <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-2)', marginBottom: 5 }}>Packaging</div>
-                  <Select
-                    value={line.packaging}
-                    onChange={(e) => setLines((prev) => ({ ...prev, [stop.requestId]: { ...prev[stop.requestId], packaging: e.target.value as 'open' | 'unopened' } }))}
-                    style={{ width: 140 }}
-                  >
-                    <option value="unopened">Unopened (4–5 days)</option>
-                    <option value="open">Open (2 days)</option>
-                  </Select>
+                  <Badge tone="neutral">{stop.packaging === 'open' ? 'Open (2 days)' : 'Unopened (4–5 days)'}</Badge>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-2)', marginBottom: 5 }}>Quality check</div>
+                  <StatusBadge status={stop.quality ?? 'pass'} label={stop.quality === 'fail' ? 'Failed' : 'Passed'} />
                 </div>
               </div>
-              <div>
-                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-2)', marginBottom: 5 }}>Quality check</div>
-                <RadioCards
-                  value={line.quality}
-                  onChange={(v) => setLines((prev) => ({ ...prev, [stop.requestId]: { ...prev[stop.requestId], quality: v } }))}
-                  options={[
-                    { value: 'pass', title: 'Pass', desc: 'Goes to good stock', icon: <Check size={13} />, tone: 'green' },
-                    { value: 'fail', title: 'Fail', desc: 'Flagged, not added to stock', icon: <X size={13} />, tone: 'red' },
-                  ]}
-                />
+              <div style={{ fontSize: 11, color: 'var(--muted)' }}>
+                <Check size={11} style={{ verticalAlign: -1, marginRight: 4 }} />
+                Assessed by {drivers.find((d) => d.id === openShipment?.driverId)?.name ?? 'the driver'} at pickup
               </div>
             </div>
           )

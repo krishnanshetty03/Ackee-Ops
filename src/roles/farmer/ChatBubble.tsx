@@ -81,6 +81,12 @@ export function ChatBubble({
                   <span className={s.k}>Bags</span>
                   <span className={s.v}>{message.requestSummary.bags}</span>
                 </div>
+                {message.requestSummary.branchName && (
+                  <div className={s.cardRow}>
+                    <span className={s.k}>Branch</span>
+                    <span className={s.v}>{message.requestSummary.branchName}</span>
+                  </div>
+                )}
                 <div className={s.cardRow}>
                   <span className={s.k}>Method</span>
                   <span className={s.v}>{message.requestSummary.type === 'staff_pickup' ? 'Team pickup' : 'Self-drop'}</span>

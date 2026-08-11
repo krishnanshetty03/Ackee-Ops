@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import type {
   AppNotification,
   AppView,
+  Branch,
   ChatMessage,
   ChatStage,
   Driver,
@@ -24,7 +25,7 @@ import type {
   RequestType,
   Vehicle,
 } from '../lib/types'
-import { DRIVERS, FARMERS, STAFF_USER, VEHICLES, buildSeed, locationFor } from '../lib/seed'
+import { BRANCHES, DRIVERS, FARMERS, STAFF_USER, VEHICLES, buildSeed, locationFor } from '../lib/seed'
 import {
   nextExceptionId,
   nextNoteId,
@@ -34,19 +35,21 @@ import {
   nextShipmentId,
   nextStockId,
   nextTaskId,
+  syncIdCounters,
   todayIso,
 } from '../lib/format'
 import { FACTORY } from '../lib/geo'
 import { loadPersisted, persistAndBroadcast, resetPersisted, subscribeRemote } from '../lib/sync'
-import { bagQuickReplyOptions, copy, dropoffTimingOptions, pickupTypeOptions, statusEmoji, statusLabel } from '../lib/chatCopy'
+import { bagQuickReplyOptions, branchOptions, copy, dropoffTimingOptions, pickupTypeOptions, statusEmoji, statusLabel } from '../lib/chatCopy'
 
-const PERSIST_VERSION = 4
+const PERSIST_VERSION = 5
 
 interface DataSlice {
   version: number
   farmers: Farmer[]
   drivers: Driver[]
   vehicles: Vehicle[]
+  branches: Branch[]
   staff: StaffMember
   requests: FarmerRequest[]
   routes: Route[]
@@ -99,6 +102,7 @@ type Actions = {
   // ---- farmer chat ----
   startNewRequest: (farmerId: string) => void
   chooseBags: (farmerId: string, bags: number) => void
+  chooseBranch: (farmerId: string, branchId: string) => void
   choosePickupType: (farmerId: string, type: RequestType) => void
   chooseDropoffTiming: (farmerId: string, timing: string) => void
   shareLocation: (farmerId: string) => void
@@ -112,14 +116,13 @@ type Actions = {
   // ---- driver ----
   driverStartRoute: (routeId: string) => void
   driverMarkStopArrived: (shipmentId: string, requestId: string) => void
-  driverConfirmPickup: (shipmentId: string, requestId: string, actualBags: number) => void
+  /** quality + packaging are assessed by the driver right here, at the farm — not later by staff */
+  driverConfirmPickup: (shipmentId: string, requestId: string, actualBags: number, quality: QualityResult, packaging: 'open' | 'unopened') => void
   driverArriveFactory: (shipmentId: string) => void
 
   // ---- staff: receiving ----
-  staffReceiveShipment: (
-    shipmentId: string,
-    lines: { requestId: string; actualBags: number; quality: QualityResult; packaging: 'open' | 'unopened' }[],
-  ) => void
+  /** staff can only correct the bag count (e.g. a spillage found on the depot scale) — quality/packaging came from the driver */
+  staffReceiveShipment: (shipmentId: string, actualBagsOverrides?: Record<string, number>) => void
 
   // ---- exceptions ----
   flagException: (input: { relatedType: 'request' | 'route' | 'shipment'; relatedId: string; type: ExceptionType; note: string }) => void
@@ -160,8 +163,8 @@ type Actions = {
   tick: () => void
   resetDemo: () => void
   _applyRemote: (state: DataSlice) => void
-  /** internal: shared tail of the chat flow once bags+type(+location/timing) are known */
-  _finalizeRequest: (farmerId: string, bags: number, type: RequestType, location?: FarmerRequest['location'], dropoffTiming?: string) => void
+  /** internal: shared tail of the chat flow once bags+branch+type(+location/timing) are known */
+  _finalizeRequest: (farmerId: string, bags: number, branchId: string, type: RequestType, location?: FarmerRequest['location'], dropoffTiming?: string) => void
 }
 
 export type Store = DataSlice & UISlice & Actions
@@ -173,6 +176,7 @@ function freshState(): DataSlice {
     farmers: FARMERS,
     drivers: DRIVERS,
     vehicles: VEHICLES,
+    branches: BRANCHES,
     staff: STAFF_USER,
     requests: seed.requests,
     routes: seed.routes,
@@ -209,7 +213,10 @@ function initialUI(): UISlice {
 
 function hydrate(): DataSlice {
   const persisted = loadPersisted<DataSlice>()
-  if (persisted && persisted.version === PERSIST_VERSION) return persisted
+  if (persisted && persisted.version === PERSIST_VERSION) {
+    syncIdCounters(persisted)
+    return persisted
+  }
   return freshState()
 }
 
@@ -237,11 +244,25 @@ export const useTallawahStore = create<Store>((set, get) => ({
         from: 'bot',
         kind: 'quick_replies',
         text: copy.bagsNoted(bags),
-        options: pickupTypeOptions(),
+        options: branchOptions(s.branches),
       })
       return {
         chat: pushChat(s.chat, farmerId, farmerMsg, botMsg),
-        chatStage: { ...s.chatStage, [farmerId]: { step: 'awaiting_type', bags } },
+        chatStage: { ...s.chatStage, [farmerId]: { step: 'awaiting_branch', bags } },
+      }
+    }),
+
+  chooseBranch: (farmerId, branchId) =>
+    set((s) => {
+      const stage = s.chatStage[farmerId]
+      if (!stage || stage.step !== 'awaiting_branch') return {}
+      const branch = s.branches.find((b) => b.id === branchId)
+      if (!branch) return {}
+      const farmerMsg = msg(farmerId, { from: 'farmer', kind: 'text', text: `📍 ${branch.name}` })
+      const botMsg = msg(farmerId, { from: 'bot', kind: 'quick_replies', text: copy.branchChosen(branch.name), options: pickupTypeOptions() })
+      return {
+        chat: pushChat(s.chat, farmerId, farmerMsg, botMsg),
+        chatStage: { ...s.chatStage, [farmerId]: { step: 'awaiting_type', bags: stage.bags, branchId } },
       }
     }),
 
@@ -255,18 +276,19 @@ export const useTallawahStore = create<Store>((set, get) => ({
         const botMsg = msg(farmerId, { from: 'bot', kind: 'location_request', text: copy.askLocation() })
         return {
           chat: pushChat(s.chat, farmerId, farmerMsg, botMsg),
-          chatStage: { ...s.chatStage, [farmerId]: { step: 'awaiting_location', bags: stage.bags, type } },
+          chatStage: { ...s.chatStage, [farmerId]: { step: 'awaiting_location', bags: stage.bags, type, branchId: stage.branchId } },
         }
       }
+      const branch = s.branches.find((b) => b.id === stage.branchId)
       const botMsg = msg(farmerId, {
         from: 'bot',
         kind: 'quick_replies',
-        text: copy.askDropoffTiming(),
+        text: copy.askDropoffTiming(branch?.name ?? 'the branch'),
         options: dropoffTimingOptions(),
       })
       return {
         chat: pushChat(s.chat, farmerId, farmerMsg, botMsg),
-        chatStage: { ...s.chatStage, [farmerId]: { step: 'awaiting_dropoff_timing', bags: stage.bags, type } },
+        chatStage: { ...s.chatStage, [farmerId]: { step: 'awaiting_dropoff_timing', bags: stage.bags, type, branchId: stage.branchId } },
       }
     }),
 
@@ -279,7 +301,7 @@ export const useTallawahStore = create<Store>((set, get) => ({
     const locMsg = msg(farmerId, { from: 'farmer', kind: 'location_share', location })
     const ackMsg = msg(farmerId, { from: 'bot', kind: 'text', text: copy.locationReceived() })
     set((s) => ({ chat: pushChat(s.chat, farmerId, locMsg, ackMsg) }))
-    setTimeout(() => get()._finalizeRequest(farmerId, stage.bags, stage.type, location), 700)
+    setTimeout(() => get()._finalizeRequest(farmerId, stage.bags, stage.branchId, stage.type, location), 700)
   },
 
   chooseDropoffTiming: (farmerId, timing) => {
@@ -288,7 +310,7 @@ export const useTallawahStore = create<Store>((set, get) => ({
     if (!stage || stage.step !== 'awaiting_dropoff_timing') return
     const farmerMsg = msg(farmerId, { from: 'farmer', kind: 'text', text: timing })
     set((s) => ({ chat: pushChat(s.chat, farmerId, farmerMsg) }))
-    get()._finalizeRequest(farmerId, stage.bags, stage.type, undefined, timing)
+    get()._finalizeRequest(farmerId, stage.bags, stage.branchId, stage.type, undefined, timing)
   },
 
   sendFreeText: (farmerId, rawText) => {
@@ -306,6 +328,13 @@ export const useTallawahStore = create<Store>((set, get) => ({
       } else {
         set((s) => ({ chat: pushChat(s.chat, farmerId, msg(farmerId, { from: 'bot', kind: 'text', text: copy.clarifyBags() })) }))
       }
+      return
+    }
+    if (stage.step === 'awaiting_branch') {
+      const lower = text.toLowerCase()
+      const match = s0.branches.find((b) => lower.includes(b.community.toLowerCase()) || lower.includes(b.name.toLowerCase()))
+      if (match) return get().chooseBranch(farmerId, match.id)
+      set((s) => ({ chat: pushChat(s.chat, farmerId, msg(farmerId, { from: 'bot', kind: 'text', text: copy.clarifyBranch() })) }))
       return
     }
     if (stage.step === 'awaiting_type') {
@@ -337,11 +366,13 @@ export const useTallawahStore = create<Store>((set, get) => ({
     }
   },
 
-  _finalizeRequest: (farmerId, bags, type, location, dropoffTiming) => {
+  _finalizeRequest: (farmerId, bags, branchId, type, location, dropoffTiming) => {
     const s = get()
     const farmer = s.farmers.find((f) => f.id === farmerId)!
+    const branch = s.branches.find((b) => b.id === branchId)
     const id = nextRequestId()
-    const loc = location ?? { ...FACTORY, label: `${farmer.name.split(' ')[0]} — self-drop`, community: farmer.community }
+    const loc =
+      location ?? { label: `${farmer.name.split(' ')[0]} — self-drop`, community: branch?.community ?? farmer.community, lat: branch?.lat ?? FACTORY.lat, lng: branch?.lng ?? FACTORY.lng }
     const request: FarmerRequest = {
       id,
       farmerId,
@@ -350,6 +381,7 @@ export const useTallawahStore = create<Store>((set, get) => ({
       location: loc,
       estimatedBags: bags,
       requestType: type,
+      branchId,
       status: 'unassigned',
       createdAt: Date.now(),
     }
@@ -357,7 +389,7 @@ export const useTallawahStore = create<Store>((set, get) => ({
       from: 'bot',
       kind: 'request_card',
       text: copy.requestConfirmed(id),
-      requestSummary: { requestId: id, bags, type, status: 'unassigned', dropoffTiming },
+      requestSummary: { requestId: id, bags, type, branchName: branch?.name, status: 'unassigned', dropoffTiming },
     })
     const n = notify({
       audience: 'staff',
@@ -367,6 +399,7 @@ export const useTallawahStore = create<Store>((set, get) => ({
     })
     set((st) => ({
       requests: [request, ...st.requests],
+      farmers: st.farmers.map((f) => (f.id === farmerId ? { ...f, nearestBranchId: branchId } : f)),
       chat: pushChat(st.chat, farmerId, cardMsg),
       chatStage: { ...st.chatStage, [farmerId]: { step: 'idle' } },
       notifications: [n, ...st.notifications],
@@ -472,27 +505,43 @@ export const useTallawahStore = create<Store>((set, get) => ({
       ),
     })),
 
-  driverConfirmPickup: (shipmentId, requestId, actualBags) => {
+  driverConfirmPickup: (shipmentId, requestId, actualBags, quality, packaging) => {
     const s = get()
     const shipment = s.shipments.find((sh) => sh.id === shipmentId)
     if (!shipment) return
     const stop = shipment.stops.find((st) => st.requestId === requestId)
     if (!stop) return
     const isLast = shipment.legIndex === shipment.stops.length - 1
+    const driver = s.drivers.find((d) => d.id === shipment.driverId)
 
-    const statusMsg = msg(stop.farmerId, {
-      from: 'bot',
-      kind: 'status_update',
-      text: copy.collected(requestId, actualBags, stop.estimatedBags, stop.farmerName),
-      statusEmoji: '✅',
-    })
+    let chat = pushChat(
+      s.chat,
+      stop.farmerId,
+      msg(stop.farmerId, { from: 'bot', kind: 'status_update', text: copy.collected(requestId, actualBags, stop.estimatedBags, stop.farmerName), statusEmoji: '✅' }),
+    )
+
+    const newExceptions: ExceptionItem[] = []
+    let notifications = s.notifications
+    if (quality === 'fail') {
+      chat = pushChat(chat, stop.farmerId, msg(stop.farmerId, { from: 'bot', kind: 'status_update', text: copy.qualityFlagged(stop.farmerName), statusEmoji: '⚠️' }))
+      newExceptions.push({
+        id: nextExceptionId(),
+        relatedType: 'shipment',
+        relatedId: shipmentId,
+        type: 'quality_fail',
+        note: `${stop.farmerName} — ${actualBags} bags flagged by ${driver?.name ?? 'the driver'} at pickup (${shipmentId}).`,
+        status: 'open',
+        createdAt: Date.now(),
+      })
+      notifications = [notify({ audience: 'staff', kind: 'exception', title: 'Quality concern flagged', body: `${stop.farmerName} — flagged at pickup by ${driver?.name ?? 'driver'} (${shipmentId})` }), ...notifications]
+    }
 
     set((st) => ({
       shipments: st.shipments.map((sh) =>
         sh.id === shipmentId
           ? {
               ...sh,
-              stops: sh.stops.map((s2) => (s2.requestId === requestId ? { ...s2, status: 'completed', actualBags, completedAt: Date.now() } : s2)),
+              stops: sh.stops.map((s2) => (s2.requestId === requestId ? { ...s2, status: 'completed', actualBags, quality, packaging, completedAt: Date.now() } : s2)),
               legIndex: sh.legIndex + 1,
               legStartedAt: Date.now(),
               legDurationMs: randomLegDuration(isLast),
@@ -501,7 +550,9 @@ export const useTallawahStore = create<Store>((set, get) => ({
           : sh,
       ),
       requests: st.requests.map((r) => (r.id === requestId ? { ...r, status: 'fulfilled' } : r)),
-      chat: pushChat(st.chat, stop.farmerId, statusMsg),
+      exceptions: newExceptions.length ? [...newExceptions, ...st.exceptions] : st.exceptions,
+      chat,
+      notifications,
     }))
   },
 
@@ -524,53 +575,36 @@ export const useTallawahStore = create<Store>((set, get) => ({
   },
 
   // ================= STAFF: RECEIVING =================
-  staffReceiveShipment: (shipmentId, lines) => {
+  staffReceiveShipment: (shipmentId, actualBagsOverrides) => {
     const s = get()
     const shipment = s.shipments.find((sh) => sh.id === shipmentId)
     if (!shipment) return
     const newStock: StockEntry[] = []
-    const newExceptions: ExceptionItem[] = []
     let chat = s.chat
 
-    for (const line of lines) {
-      const stop = shipment.stops.find((st) => st.requestId === line.requestId)
-      if (!stop) continue
-      if (line.quality === 'pass') {
-        newStock.push({
-          id: nextStockId(stop.farmerId),
-          shipmentId,
-          farmerId: stop.farmerId,
-          farmerName: stop.farmerName,
-          bags: line.actualBags,
-          quality: 'pass',
-          packaging: line.packaging,
-          receivedAt: Date.now(),
-          freshnessHours: line.packaging === 'unopened' ? 108 : 48,
-          receivedBy: s.staff.name,
-        })
-        chat = pushChat(
-          chat,
-          stop.farmerId,
-          msg(stop.farmerId, { from: 'bot', kind: 'status_update', text: copy.receivedPass(line.actualBags, stop.farmerName), statusEmoji: '🏭' }),
-        )
-      } else {
-        const excId = nextExceptionId()
-        newExceptions.push({
-          id: excId,
-          relatedType: 'shipment',
-          relatedId: shipmentId,
-          type: 'quality_fail',
-          note: `${stop.farmerName} — ${line.actualBags} bags failed quality check on receiving (${shipmentId}).`,
-          status: 'open',
-          createdAt: Date.now(),
-        })
-        chat = pushChat(chat, stop.farmerId, msg(stop.farmerId, { from: 'bot', kind: 'status_update', text: copy.receivedFail(stop.farmerName), statusEmoji: '⚠️' }))
-      }
+    // quality + packaging were already assessed by the driver at pickup — receiving just
+    // logs what passed into the stock ledger, staff can only correct the bag count here.
+    for (const stop of shipment.stops) {
+      if (stop.quality !== 'pass') continue
+      const actualBags = actualBagsOverrides?.[stop.requestId] ?? stop.actualBags ?? stop.estimatedBags
+      const packaging = stop.packaging ?? 'unopened'
+      newStock.push({
+        id: nextStockId(stop.farmerId),
+        shipmentId,
+        farmerId: stop.farmerId,
+        farmerName: stop.farmerName,
+        bags: actualBags,
+        quality: 'pass',
+        packaging,
+        receivedAt: Date.now(),
+        freshnessHours: packaging === 'unopened' ? 108 : 48,
+        receivedBy: s.staff.name,
+      })
+      chat = pushChat(chat, stop.farmerId, msg(stop.farmerId, { from: 'bot', kind: 'status_update', text: copy.receivedPass(actualBags, stop.farmerName), statusEmoji: '🏭' }))
     }
 
     set((st) => ({
       stock: [...newStock, ...st.stock],
-      exceptions: [...newExceptions, ...st.exceptions],
       shipments: st.shipments.map((sh) => (sh.id === shipmentId ? { ...sh, status: 'received', closedAt: Date.now() } : sh)),
       chat,
     }))
@@ -680,7 +714,10 @@ export const useTallawahStore = create<Store>((set, get) => ({
     set({ ...freshState(), ...initialUI() })
   },
 
-  _applyRemote: (remote) => set({ ...remote }),
+  _applyRemote: (remote) => {
+    syncIdCounters(remote)
+    set({ ...remote })
+  },
 }))
 
 // ---------------- simulation + persistence wiring ----------------
@@ -699,8 +736,8 @@ export function startSync() {
   syncStarted = true
   useTallawahStore.subscribe((state) => {
     if (applyingRemote) return
-    const { version, farmers, drivers, vehicles, staff, requests, routes, shipments, stock, exceptions, notifications, chat, chatStage, farmerNotes, followUpTasks, now } = state
-    persistAndBroadcast({ version, farmers, drivers, vehicles, staff, requests, routes, shipments, stock, exceptions, notifications, chat, chatStage, farmerNotes, followUpTasks, now })
+    const { version, farmers, drivers, vehicles, branches, staff, requests, routes, shipments, stock, exceptions, notifications, chat, chatStage, farmerNotes, followUpTasks, now } = state
+    persistAndBroadcast({ version, farmers, drivers, vehicles, branches, staff, requests, routes, shipments, stock, exceptions, notifications, chat, chatStage, farmerNotes, followUpTasks, now })
   })
   subscribeRemote<any>((remote) => {
     if (!remote || remote.version !== PERSIST_VERSION) return

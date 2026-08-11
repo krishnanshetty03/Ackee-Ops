@@ -337,6 +337,13 @@
   color: var(--text-2);
 }
 
+.assessBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 2px;
+}
+
 .ctaFooter {
   position: sticky;
   bottom: 0;

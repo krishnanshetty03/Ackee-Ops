@@ -1,6 +1,7 @@
 import { FACTORY, FARM_COMMUNITIES, jitter } from './geo'
 import { todayIso } from './format'
 import type {
+  Branch,
   Driver,
   ExceptionItem,
   Farmer,
@@ -22,12 +23,20 @@ export const STAFF_USER: StaffMember = {
 }
 
 export const FARMERS: Farmer[] = [
-  { id: 'FM-01', name: 'Kwame Owusu', phone: '+233 24 118 2290', community: 'Ejisu', initials: 'KO', avatarHue: 28, memberSince: '2023-03-11', tags: ['Preferred Supplier'] },
-  { id: 'FM-02', name: 'Ama Boateng', phone: '+233 20 774 5581', community: 'Bekwai', initials: 'AB', avatarHue: 152, memberSince: '2022-11-02', tags: [] },
-  { id: 'FM-03', name: 'Kofi Asante', phone: '+233 27 902 3317', community: 'Mampong', initials: 'KA', avatarHue: 205, memberSince: '2024-01-19', tags: [] },
-  { id: 'FM-04', name: 'Akosua Mensah', phone: '+233 55 331 0087', community: 'Konongo', initials: 'AM', avatarHue: 340, memberSince: '2023-07-06', tags: ['High Volume', 'Reliable'] },
-  { id: 'FM-05', name: 'Yaw Darko', phone: '+233 24 660 4412', community: 'Juaben', initials: 'YD', avatarHue: 42, memberSince: '2021-09-23', tags: ['Reliable'] },
-  { id: 'FM-06', name: 'Abena Osei', phone: '+233 26 118 9954', community: 'Offinso', initials: 'AO', avatarHue: 190, memberSince: '2024-04-02', tags: ['Needs Follow-up'] },
+  { id: 'FM-01', name: 'Kwame Owusu', phone: '+233 24 118 2290', community: 'Ejisu', initials: 'KO', avatarHue: 28, memberSince: '2023-03-11', tags: ['Preferred Supplier'], nearestBranchId: 'BR-01' },
+  { id: 'FM-02', name: 'Ama Boateng', phone: '+233 20 774 5581', community: 'Bekwai', initials: 'AB', avatarHue: 152, memberSince: '2022-11-02', tags: [], nearestBranchId: 'BR-03' },
+  { id: 'FM-03', name: 'Kofi Asante', phone: '+233 27 902 3317', community: 'Mampong', initials: 'KA', avatarHue: 205, memberSince: '2024-01-19', tags: [], nearestBranchId: 'BR-02' },
+  { id: 'FM-04', name: 'Akosua Mensah', phone: '+233 55 331 0087', community: 'Konongo', initials: 'AM', avatarHue: 340, memberSince: '2023-07-06', tags: ['High Volume', 'Reliable'], nearestBranchId: 'BR-01' },
+  { id: 'FM-05', name: 'Yaw Darko', phone: '+233 24 660 4412', community: 'Juaben', initials: 'YD', avatarHue: 42, memberSince: '2021-09-23', tags: ['Reliable'], nearestBranchId: 'BR-01' },
+  { id: 'FM-06', name: 'Abena Osei', phone: '+233 26 118 9954', community: 'Offinso', initials: 'AO', avatarHue: 190, memberSince: '2024-04-02', tags: ['Needs Follow-up'], nearestBranchId: 'BR-02' },
+]
+
+// Tallawah Foods' 3 collection branches, spread across Ashanti Region so
+// "which is nearest to you" is a real question for farmers, not a formality.
+export const BRANCHES: Branch[] = [
+  { id: 'BR-01', name: 'Kumasi (Main Depot)', community: 'Kumasi', lat: FACTORY.lat, lng: FACTORY.lng },
+  { id: 'BR-02', name: 'Mampong Branch', community: 'Mampong', lat: 7.0631, lng: -1.4003 },
+  { id: 'BR-03', name: 'Bekwai Branch', community: 'Bekwai', lat: 6.4514, lng: -1.5786 },
 ]
 
 export const VEHICLES: Vehicle[] = [
@@ -78,6 +87,7 @@ export function buildSeed() {
       location: locationFor(FARMERS[0], ''),
       estimatedBags: 14,
       requestType: 'staff_pickup',
+      branchId: 'BR-01',
       status: 'fulfilled',
       createdAt: T0 - 4.5 * DAY,
       routeId: 'RT-031',
@@ -90,6 +100,7 @@ export function buildSeed() {
       location: locationFor(FARMERS[2], ''),
       estimatedBags: 22,
       requestType: 'staff_pickup',
+      branchId: 'BR-02',
       status: 'assigned',
       createdAt: T0 - 3 * HOUR,
       routeId: 'RT-041',
@@ -102,6 +113,7 @@ export function buildSeed() {
       location: locationFor(FARMERS[4], ''),
       estimatedBags: 18,
       requestType: 'staff_pickup',
+      branchId: 'BR-01',
       status: 'assigned',
       createdAt: T0 - 2.6 * HOUR,
       routeId: 'RT-041',
@@ -114,6 +126,7 @@ export function buildSeed() {
       location: locationFor(FARMERS[1], ''),
       estimatedBags: 9,
       requestType: 'self_drop',
+      branchId: 'BR-03',
       status: 'unassigned',
       createdAt: T0 - 1.4 * HOUR,
     },
@@ -125,6 +138,7 @@ export function buildSeed() {
       location: locationFor(FARMERS[3], ''),
       estimatedBags: 27,
       requestType: 'staff_pickup',
+      branchId: 'BR-01',
       status: 'unassigned',
       createdAt: T0 - 55 * MIN,
     },
@@ -136,6 +150,7 @@ export function buildSeed() {
       location: locationFor(FARMERS[5], ''),
       estimatedBags: 11,
       requestType: 'staff_pickup',
+      branchId: 'BR-02',
       status: 'flagged',
       createdAt: T0 - 5 * HOUR,
       exceptionId: 'EXC-004',

@@ -6,6 +6,36 @@ let notifSeq = 0
 let noteSeq = 2
 let taskSeq = 2
 
+function maxSuffix(ids: string[], prefix: string): number {
+  let max = 0
+  for (const id of ids) {
+    if (!id.startsWith(prefix)) continue
+    const n = parseInt(id.slice(prefix.length), 10)
+    if (Number.isFinite(n) && n > max) max = n
+  }
+  return max
+}
+
+/** These id counters live in memory only, so a page reload resets them to their seed
+ *  defaults while the persisted entities they numbered stay put — the next id minted
+ *  would then collide with one already on disk. Call this once right after hydrating
+ *  persisted state so each counter resumes past whatever was actually saved. */
+export function syncIdCounters(state: {
+  requests: { id: string }[]
+  routes: { id: string }[]
+  shipments: { id: string }[]
+  exceptions: { id: string }[]
+  farmerNotes: { id: string }[]
+  followUpTasks: { id: string }[]
+}) {
+  reqSeq = Math.max(reqSeq, maxSuffix(state.requests.map((r) => r.id), 'REQ-'))
+  routeSeq = Math.max(routeSeq, maxSuffix(state.routes.map((r) => r.id), 'RT-'))
+  shipSeq = Math.max(shipSeq, maxSuffix(state.shipments.map((s) => s.id), 'SHP-'))
+  excSeq = Math.max(excSeq, maxSuffix(state.exceptions.map((e) => e.id), 'EXC-'))
+  noteSeq = Math.max(noteSeq, maxSuffix(state.farmerNotes.map((n) => n.id), 'NOTE-'))
+  taskSeq = Math.max(taskSeq, maxSuffix(state.followUpTasks.map((t) => t.id), 'TASK-'))
+}
+
 export function nextRequestId() {
   reqSeq += 1
   return `REQ-${reqSeq}`

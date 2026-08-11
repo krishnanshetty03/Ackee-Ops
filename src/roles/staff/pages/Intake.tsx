@@ -17,6 +17,7 @@ type FilterTab = 'all' | RequestStatus
 
 export function Intake() {
   const requests = useTallawahStore((st) => st.requests)
+  const branches = useTallawahStore((st) => st.branches)
   const now = useTallawahStore((st) => st.now)
   const selectedIds = useTallawahStore((st) => st.selectedRequestIds)
   const toggleSelected = useTallawahStore((st) => st.toggleSelectedRequest)
@@ -90,6 +91,7 @@ export function Intake() {
                   </th>
                   <th>Farmer</th>
                   <th>Location</th>
+                  <th>Branch</th>
                   <th>Bags</th>
                   <th>Type</th>
                   <th>Status</th>
@@ -113,6 +115,7 @@ export function Intake() {
                         {r.location.community}
                       </div>
                     </td>
+                    <td className={s.cellMeta}>{branches.find((b) => b.id === r.branchId)?.name ?? '—'}</td>
                     <td className={s.cellMono}>{fmtBags(r.estimatedBags)}</td>
                     <td>{r.requestType === 'staff_pickup' ? 'Team pickup' : 'Self-drop'}</td>
                     <td>

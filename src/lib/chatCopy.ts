@@ -1,4 +1,4 @@
-import type { RequestType } from './types'
+import type { Branch, RequestType } from './types'
 
 export const BAG_QUICK_PICKS = [5, 10, 15, 20, 30]
 
@@ -12,17 +12,20 @@ export const copy = {
 
   askBags: (name: string) => `Great news, ${firstName(name)}! 🌿 How many bags of ackee do you have ready today?`,
 
-  bagsNoted: (bags: number) =>
-    `${bags} ${bags === 1 ? 'bag' : 'bags'} noted ✅. How should we get them to the depot?`,
+  bagsNoted: (bags: number) => `${bags} ${bags === 1 ? 'bag' : 'bags'} noted ✅. Which of our branches is closest to your farm?`,
+
+  branchChosen: (branchName: string) => `Got it — *${branchName}* it is. How should we get your bags there?`,
 
   askLocation: () => `Perfect — please share your farm location so we can route a vehicle to you.`,
 
   locationReceived: () => `📍 Location received. Locking in your pickup request…`,
 
-  askDropoffTiming: () => `No problem — when will you bring it to the Kumasi depot yourself?`,
+  askDropoffTiming: (branchName: string) => `No problem — when will you bring it to *${branchName}* yourself?`,
 
   clarifyBags: () =>
     `Sorry, I didn't catch a bag count — try a number like "12", or tap one of the quick picks below.`,
+
+  clarifyBranch: () => `Please pick one of the branches below so we know where to route you 🙏`,
 
   clarifyType: () => `Please choose one — *Team Pickup* or *Self-Drop* — using the buttons below 🙏`,
 
@@ -55,12 +58,16 @@ export const copy = {
   receivedPass: (bags: number, name: string) =>
     `🏭 Received at the Kumasi depot — quality check *passed* on all ${bags} bags. Medaase, ${firstName(name)}!`,
 
-  receivedFail: (name: string) =>
-    `⚠️ Your bags arrived at the depot but didn't clear our quality check this time. Our team will reach out about next steps, ${firstName(name)}.`,
+  qualityFlagged: (name: string) =>
+    `⚠️ Our driver flagged a quality concern with your bags at pickup. Our team will reach out about next steps, ${firstName(name)}.`,
 
   myRequestsEmpty: () => `You don't have any requests logged yet. Tap *🌱 Ackee Ready* to send your first one!`,
 
   myRequestsHeader: () => `Here's what's on file for you recently:`,
+}
+
+export function branchOptions(branches: Branch[]) {
+  return branches.map((b) => ({ label: `📍 ${b.name}`, value: b.id }))
 }
 
 export function pickupTypeOptions() {

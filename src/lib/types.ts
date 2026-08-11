@@ -17,6 +17,14 @@ export interface Location extends GeoPoint {
   community: string
 }
 
+export interface Branch {
+  id: string
+  name: string
+  community: string
+  lat: number
+  lng: number
+}
+
 export interface Farmer {
   id: string
   name: string
@@ -27,6 +35,8 @@ export interface Farmer {
   memberSince: string // ISO date
   /** staff-assigned relationship labels — "Preferred Supplier", "High Volume", etc. */
   tags: string[]
+  /** last branch the farmer told us was nearest to them, via WhatsApp */
+  nearestBranchId?: string
 }
 
 export interface FarmerRequest {
@@ -37,6 +47,7 @@ export interface FarmerRequest {
   location: Location
   estimatedBags: number
   requestType: RequestType
+  branchId: string
   status: RequestStatus
   createdAt: number // epoch ms
   routeId?: string
@@ -86,6 +97,9 @@ export interface ShipmentStop {
   location: Location
   estimatedBags: number
   actualBags?: number
+  /** assessed by the driver on-site at pickup, not by staff at receiving — they're the ones who visit the farm */
+  quality?: QualityResult
+  packaging?: 'open' | 'unopened'
   status: StopStatus
   completedAt?: number
 }
@@ -204,6 +218,7 @@ export interface ChatMessage {
     requestId: string
     bags: number
     type: RequestType
+    branchName?: string
     status: RequestStatus
     dropoffTiming?: string
   }
@@ -214,9 +229,10 @@ export interface ChatMessage {
 export type ChatStage =
   | { step: 'idle' }
   | { step: 'awaiting_bags' }
-  | { step: 'awaiting_type'; bags: number }
-  | { step: 'awaiting_location'; bags: number; type: RequestType }
-  | { step: 'awaiting_dropoff_timing'; bags: number; type: RequestType }
+  | { step: 'awaiting_branch'; bags: number }
+  | { step: 'awaiting_type'; bags: number; branchId: string }
+  | { step: 'awaiting_location'; bags: number; type: RequestType; branchId: string }
+  | { step: 'awaiting_dropoff_timing'; bags: number; type: RequestType; branchId: string }
 
 // ---------------- Farmer CRM ----------------
 

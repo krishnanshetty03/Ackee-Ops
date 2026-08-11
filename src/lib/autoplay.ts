@@ -84,7 +84,13 @@ async function sequence(get: () => ReturnType<typeof useTallawahStore.getState>)
   checkAlive()
   const bags = BAG_CHOICES[Math.floor(Math.random() * BAG_CHOICES.length)]
   get().chooseBags(farmer.id, bags)
-  get().setSpotlight({ view: 'present', note: `${bags} bags ready — choosing how to get them to the depot` })
+  get().setSpotlight({ view: 'present', note: `${bags} bags ready — picking the nearest branch` })
+  await sleep(1500)
+
+  checkAlive()
+  const branch = get().branches[Math.floor(Math.random() * get().branches.length)]
+  get().chooseBranch(farmer.id, branch.id)
+  get().setSpotlight({ view: 'present', note: `${branch.name} it is — choosing how to get them there` })
   await sleep(1500)
 
   checkAlive()
@@ -157,8 +163,8 @@ async function sequence(get: () => ReturnType<typeof useTallawahStore.getState>)
 
     checkAlive()
     const actual = Math.max(1, stop.estimatedBags + Math.round((Math.random() - 0.4) * 3))
-    get().driverConfirmPickup(shipmentId, stop.requestId, actual)
-    get().setSpotlight({ view: 'present', note: `Collected ${actual} bags from ${stop.farmerName}` })
+    get().driverConfirmPickup(shipmentId, stop.requestId, actual, 'pass', 'unopened')
+    get().setSpotlight({ view: 'present', note: `Collected ${actual} bags from ${stop.farmerName} — quality passed` })
     await sleep(1200)
   }
 
@@ -171,18 +177,12 @@ async function sequence(get: () => ReturnType<typeof useTallawahStore.getState>)
   get().setSpotlight({ view: 'present', note: 'Back at the depot — receiving the load' })
   await sleep(2200)
 
-  // ---- 4. staff receives + quality-checks ----
+  // ---- 4. staff receives the already-inspected load ----
   checkAlive()
   const finalShipment = get().shipments.find((s) => s.id === shipmentId)
   if (finalShipment) {
-    const lines = finalShipment.stops.map((st) => ({
-      requestId: st.requestId,
-      actualBags: st.actualBags ?? st.estimatedBags,
-      quality: 'pass' as const,
-      packaging: 'unopened' as const,
-    }))
-    get().staffReceiveShipment(finalShipment.id, lines)
-    get().setSpotlight({ view: 'present', note: 'Quality passed — converted to stock. Loop complete.' })
+    get().staffReceiveShipment(finalShipment.id)
+    get().setSpotlight({ view: 'present', note: 'Logged to stock. Loop complete.' })
   }
   await sleep(2600)
 

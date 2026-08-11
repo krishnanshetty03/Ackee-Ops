@@ -9,6 +9,7 @@ export function FarmerApp({ farmerId, theme, onBack }: { farmerId: string; theme
   const chat = useTallawahStore((st) => st.chat[farmerId] ?? [])
   const startNewRequest = useTallawahStore((st) => st.startNewRequest)
   const chooseBags = useTallawahStore((st) => st.chooseBags)
+  const chooseBranch = useTallawahStore((st) => st.chooseBranch)
   const choosePickupType = useTallawahStore((st) => st.choosePickupType)
   const chooseDropoffTiming = useTallawahStore((st) => st.chooseDropoffTiming)
   const shareLocation = useTallawahStore((st) => st.shareLocation)
@@ -78,6 +79,7 @@ export function FarmerApp({ farmerId, theme, onBack }: { farmerId: string; theme
   function handleQuickReply(kind: string, value: string) {
     if (kind !== 'quick_replies') return
     if (/^\d+$/.test(value)) return chooseBags(farmerId, parseInt(value, 10))
+    if (value.startsWith('BR-')) return chooseBranch(farmerId, value)
     if (value === 'staff_pickup' || value === 'self_drop') return choosePickupType(farmerId, value)
     return chooseDropoffTiming(farmerId, value)
   }

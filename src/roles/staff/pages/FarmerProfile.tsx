@@ -91,6 +91,11 @@ export function FarmerProfile({ farmerId, theme, onBack }: { farmerId: string; t
           <div className={f.profileMeta}>
             <MapPin size={12} /> {farmer.community} <span>·</span> <b>{farmer.phone}</b> <span>·</span> Farmer since{' '}
             {new Date(farmer.memberSince).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })}
+            {farmer.nearestBranchId && (
+              <>
+                <span>·</span> Nearest branch: <b>{store.branches.find((b) => b.id === farmer.nearestBranchId)?.name}</b>
+              </>
+            )}
           </div>
           <div className={f.tagRow} style={{ marginTop: 2 }}>
             {farmer.tags.map((t) => (
