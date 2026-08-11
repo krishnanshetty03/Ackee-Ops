@@ -96,6 +96,11 @@ export function FarmerProfile({ farmerId, theme, onBack }: { farmerId: string; t
                 <span>·</span> Nearest branch: <b>{store.branches.find((b) => b.id === farmer.nearestBranchId)?.name}</b>
               </>
             )}
+            {farmer.language && (
+              <>
+                <span>·</span> Prefers: <b>{farmer.language === 'tw' ? 'Twi' : 'English'}</b>
+              </>
+            )}
           </div>
           <div className={f.tagRow} style={{ marginTop: 2 }}>
             {farmer.tags.map((t) => (

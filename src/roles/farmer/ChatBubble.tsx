@@ -1,9 +1,9 @@
-import type { ChatMessage } from '../../lib/types'
+import type { ChatMessage, Language } from '../../lib/types'
 import s from './whatsapp.module.css'
 import { MapPin } from '../../components/icons'
 import { MiniMap } from '../../components/map/MiniMap'
 import type { Theme } from '../../lib/useTheme'
-import { statusLabel } from '../../lib/chatCopy'
+import { cardLabels, composerLabels, dropoffTimingLabel, pickupTypeShortLabel, statusLabel } from '../../lib/chatCopy'
 
 function renderWaText(text: string) {
   // WhatsApp's *bold* convention — split on *…* pairs and bold the interior
@@ -41,17 +41,21 @@ export function ChatBubble({
   message,
   isLast,
   theme,
+  language,
   onQuickReply,
   onShareLocation,
 }: {
   message: ChatMessage
   isLast: boolean
   theme: Theme
+  language?: Language
   onQuickReply: (value: string) => void
   onShareLocation: () => void
 }) {
   const outgoing = message.from === 'farmer'
   const interactive = isLast
+  const k = cardLabels(language)
+  const cl = composerLabels(language)
 
   return (
     <div className={[s.row, outgoing ? s.rowOut : s.rowIn].join(' ')}>
@@ -78,29 +82,29 @@ export function ChatBubble({
               </div>
               <div className={s.cardBody}>
                 <div className={s.cardRow}>
-                  <span className={s.k}>Bags</span>
+                  <span className={s.k}>{k.bags}</span>
                   <span className={s.v}>{message.requestSummary.bags}</span>
                 </div>
                 {message.requestSummary.branchName && (
                   <div className={s.cardRow}>
-                    <span className={s.k}>Branch</span>
+                    <span className={s.k}>{k.branch}</span>
                     <span className={s.v}>{message.requestSummary.branchName}</span>
                   </div>
                 )}
                 <div className={s.cardRow}>
-                  <span className={s.k}>Method</span>
-                  <span className={s.v}>{message.requestSummary.type === 'staff_pickup' ? 'Team pickup' : 'Self-drop'}</span>
+                  <span className={s.k}>{k.method}</span>
+                  <span className={s.v}>{pickupTypeShortLabel(message.requestSummary.type, language)}</span>
                 </div>
                 {message.requestSummary.dropoffTiming && (
                   <div className={s.cardRow}>
-                    <span className={s.k}>When</span>
-                    <span className={s.v}>{message.requestSummary.dropoffTiming}</span>
+                    <span className={s.k}>{k.when}</span>
+                    <span className={s.v}>{dropoffTimingLabel(message.requestSummary.dropoffTiming, language)}</span>
                   </div>
                 )}
                 <div className={s.cardRow}>
-                  <span className={s.k}>Status</span>
+                  <span className={s.k}>{k.status}</span>
                   <span className={s.v} style={{ color: 'var(--wa-accent)' }}>
-                    {statusLabel(message.requestSummary.status)}
+                    {statusLabel(message.requestSummary.status, language)}
                   </span>
                 </div>
               </div>
@@ -138,7 +142,7 @@ export function ChatBubble({
 
         {message.kind === 'location_request' && (
           <button className={s.locationBtn} disabled={!interactive} onClick={onShareLocation}>
-            <MapPin size={15} /> Share Farm Location
+            <MapPin size={15} /> {cl.shareLocation}
           </button>
         )}
       </div>

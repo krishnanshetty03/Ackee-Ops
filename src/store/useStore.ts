@@ -13,6 +13,7 @@ import type {
   FarmerRequest,
   FollowUpTask,
   GeoPoint,
+  Language,
   QualityResult,
   Route,
   Shipment,
@@ -40,7 +41,19 @@ import {
 } from '../lib/format'
 import { FACTORY } from '../lib/geo'
 import { loadPersisted, persistAndBroadcast, resetPersisted, subscribeRemote } from '../lib/sync'
-import { bagQuickReplyOptions, branchOptions, copy, dropoffTimingOptions, pickupTypeOptions, statusEmoji, statusLabel } from '../lib/chatCopy'
+import {
+  bagQuickReplyOptions,
+  branchOptions,
+  copyFor,
+  dropoffTimingLabel,
+  dropoffTimingOptions,
+  languageOptions,
+  LANGUAGE_PROMPT,
+  pickupTypeLabel,
+  pickupTypeOptions,
+  statusEmoji,
+  statusLabel,
+} from '../lib/chatCopy'
 
 const PERSIST_VERSION = 5
 
@@ -101,6 +114,9 @@ function randomLegDuration(isReturn = false) {
 type Actions = {
   // ---- farmer chat ----
   startNewRequest: (farmerId: string) => void
+  /** first-contact language pick, or a later switch via the composer toggle — leaves
+   *  mid-conversation progress untouched when it's a switch, not a first choice */
+  chooseLanguage: (farmerId: string, language: Language) => void
   chooseBags: (farmerId: string, bags: number) => void
   chooseBranch: (farmerId: string, branchId: string) => void
   choosePickupType: (farmerId: string, type: RequestType) => void
@@ -229,21 +245,50 @@ export const useTallawahStore = create<Store>((set, get) => ({
     set((s) => {
       const farmer = s.farmers.find((f) => f.id === farmerId)!
       const already = s.chat[farmerId]?.length ?? 0
-      const welcome = already === 0 ? [msg(farmerId, { from: 'bot', kind: 'text', text: copy.welcome(farmer.name) })] : []
-      const ask = msg(farmerId, { from: 'bot', kind: 'quick_replies', text: copy.askBags(farmer.name), options: bagQuickReplyOptions() })
+      if (already === 0 && !farmer.language) {
+        const ask = msg(farmerId, { from: 'bot', kind: 'quick_replies', text: LANGUAGE_PROMPT, options: languageOptions() })
+        return {
+          chat: pushChat(s.chat, farmerId, ask),
+          chatStage: { ...s.chatStage, [farmerId]: { step: 'awaiting_language' } },
+        }
+      }
+      const t = copyFor(farmer.language)
+      const welcome = already === 0 ? [msg(farmerId, { from: 'bot', kind: 'text', text: t.welcome(farmer.name) })] : []
+      const ask = msg(farmerId, { from: 'bot', kind: 'quick_replies', text: t.askBags(farmer.name), options: bagQuickReplyOptions() })
       return {
         chat: pushChat(s.chat, farmerId, ...welcome, ask),
         chatStage: { ...s.chatStage, [farmerId]: { step: 'awaiting_bags' } },
       }
     }),
 
+  chooseLanguage: (farmerId, language) =>
+    set((s) => {
+      const farmer = s.farmers.find((f) => f.id === farmerId)
+      if (!farmer) return {}
+      const stage = s.chatStage[farmerId]
+      const isFirstChoice = stage?.step === 'awaiting_language'
+      const t = copyFor(language)
+      const label = languageOptions().find((o) => o.value === language)?.label ?? language
+      const farmerMsg = msg(farmerId, { from: 'farmer', kind: 'text', text: label })
+      const replyMsgs = isFirstChoice
+        ? [msg(farmerId, { from: 'bot', kind: 'text', text: t.welcome(farmer.name) }), msg(farmerId, { from: 'bot', kind: 'quick_replies', text: t.askBags(farmer.name), options: bagQuickReplyOptions() })]
+        : [msg(farmerId, { from: 'bot', kind: 'text', text: t.languageChanged() })]
+      return {
+        farmers: s.farmers.map((f) => (f.id === farmerId ? { ...f, language } : f)),
+        chat: pushChat(s.chat, farmerId, farmerMsg, ...replyMsgs),
+        chatStage: isFirstChoice ? { ...s.chatStage, [farmerId]: { step: 'awaiting_bags' } } : s.chatStage,
+      }
+    }),
+
   chooseBags: (farmerId, bags) =>
     set((s) => {
+      const farmer = s.farmers.find((f) => f.id === farmerId)
+      const t = copyFor(farmer?.language)
       const farmerMsg = msg(farmerId, { from: 'farmer', kind: 'text', text: String(bags) })
       const botMsg = msg(farmerId, {
         from: 'bot',
         kind: 'quick_replies',
-        text: copy.bagsNoted(bags),
+        text: t.bagsNoted(bags),
         options: branchOptions(s.branches),
       })
       return {
@@ -258,8 +303,11 @@ export const useTallawahStore = create<Store>((set, get) => ({
       if (!stage || stage.step !== 'awaiting_branch') return {}
       const branch = s.branches.find((b) => b.id === branchId)
       if (!branch) return {}
+      const farmer = s.farmers.find((f) => f.id === farmerId)
+      const lang = farmer?.language
+      const t = copyFor(lang)
       const farmerMsg = msg(farmerId, { from: 'farmer', kind: 'text', text: `📍 ${branch.name}` })
-      const botMsg = msg(farmerId, { from: 'bot', kind: 'quick_replies', text: copy.branchChosen(branch.name), options: pickupTypeOptions() })
+      const botMsg = msg(farmerId, { from: 'bot', kind: 'quick_replies', text: t.branchChosen(branch.name), options: pickupTypeOptions(lang) })
       return {
         chat: pushChat(s.chat, farmerId, farmerMsg, botMsg),
         chatStage: { ...s.chatStage, [farmerId]: { step: 'awaiting_type', bags: stage.bags, branchId } },
@@ -270,10 +318,13 @@ export const useTallawahStore = create<Store>((set, get) => ({
     set((s) => {
       const stage = s.chatStage[farmerId]
       if (!stage || stage.step !== 'awaiting_type') return {}
-      const label = type === 'staff_pickup' ? '🚚 Team Pickup' : '🏭 I’ll Self-Drop'
+      const farmer = s.farmers.find((f) => f.id === farmerId)
+      const lang = farmer?.language
+      const t = copyFor(lang)
+      const label = pickupTypeLabel(type, lang)
       const farmerMsg = msg(farmerId, { from: 'farmer', kind: 'text', text: label })
       if (type === 'staff_pickup') {
-        const botMsg = msg(farmerId, { from: 'bot', kind: 'location_request', text: copy.askLocation() })
+        const botMsg = msg(farmerId, { from: 'bot', kind: 'location_request', text: t.askLocation() })
         return {
           chat: pushChat(s.chat, farmerId, farmerMsg, botMsg),
           chatStage: { ...s.chatStage, [farmerId]: { step: 'awaiting_location', bags: stage.bags, type, branchId: stage.branchId } },
@@ -283,8 +334,8 @@ export const useTallawahStore = create<Store>((set, get) => ({
       const botMsg = msg(farmerId, {
         from: 'bot',
         kind: 'quick_replies',
-        text: copy.askDropoffTiming(branch?.name ?? 'the branch'),
-        options: dropoffTimingOptions(),
+        text: t.askDropoffTiming(branch?.name ?? 'the branch'),
+        options: dropoffTimingOptions(lang),
       })
       return {
         chat: pushChat(s.chat, farmerId, farmerMsg, botMsg),
@@ -297,9 +348,10 @@ export const useTallawahStore = create<Store>((set, get) => ({
     const stage = s0.chatStage[farmerId]
     if (!stage || stage.step !== 'awaiting_location') return
     const farmer = s0.farmers.find((f) => f.id === farmerId)!
+    const t = copyFor(farmer.language)
     const location = locationFor(farmer, '')
     const locMsg = msg(farmerId, { from: 'farmer', kind: 'location_share', location })
-    const ackMsg = msg(farmerId, { from: 'bot', kind: 'text', text: copy.locationReceived() })
+    const ackMsg = msg(farmerId, { from: 'bot', kind: 'text', text: t.locationReceived() })
     set((s) => ({ chat: pushChat(s.chat, farmerId, locMsg, ackMsg) }))
     setTimeout(() => get()._finalizeRequest(farmerId, stage.bags, stage.branchId, stage.type, location), 700)
   },
@@ -308,7 +360,8 @@ export const useTallawahStore = create<Store>((set, get) => ({
     const s0 = get()
     const stage = s0.chatStage[farmerId]
     if (!stage || stage.step !== 'awaiting_dropoff_timing') return
-    const farmerMsg = msg(farmerId, { from: 'farmer', kind: 'text', text: timing })
+    const farmer = s0.farmers.find((f) => f.id === farmerId)
+    const farmerMsg = msg(farmerId, { from: 'farmer', kind: 'text', text: dropoffTimingLabel(timing, farmer?.language) })
     set((s) => ({ chat: pushChat(s.chat, farmerId, farmerMsg) }))
     get()._finalizeRequest(farmerId, stage.bags, stage.branchId, stage.type, undefined, timing)
   },
@@ -317,16 +370,26 @@ export const useTallawahStore = create<Store>((set, get) => ({
     const text = rawText.trim()
     if (!text) return
     const s0 = get()
+    const farmer = s0.farmers.find((f) => f.id === farmerId)
+    const lang = farmer?.language
+    const t = copyFor(lang)
     const stage = s0.chatStage[farmerId] ?? { step: 'idle' }
     const farmerMsg = msg(farmerId, { from: 'farmer', kind: 'text', text })
     set((s) => ({ chat: pushChat(s.chat, farmerId, farmerMsg) }))
 
+    if (stage.step === 'awaiting_language') {
+      const lower = text.toLowerCase()
+      if (/twi/.test(lower)) return get().chooseLanguage(farmerId, 'tw')
+      if (/eng/.test(lower)) return get().chooseLanguage(farmerId, 'en')
+      set((s) => ({ chat: pushChat(s.chat, farmerId, msg(farmerId, { from: 'bot', kind: 'text', text: LANGUAGE_PROMPT })) }))
+      return
+    }
     if (stage.step === 'awaiting_bags') {
       const n = parseInt(text.replace(/[^\d]/g, ''), 10)
       if (Number.isFinite(n) && n > 0) {
         get().chooseBags(farmerId, n)
       } else {
-        set((s) => ({ chat: pushChat(s.chat, farmerId, msg(farmerId, { from: 'bot', kind: 'text', text: copy.clarifyBags() })) }))
+        set((s) => ({ chat: pushChat(s.chat, farmerId, msg(farmerId, { from: 'bot', kind: 'text', text: t.clarifyBags() })) }))
       }
       return
     }
@@ -334,26 +397,26 @@ export const useTallawahStore = create<Store>((set, get) => ({
       const lower = text.toLowerCase()
       const match = s0.branches.find((b) => lower.includes(b.community.toLowerCase()) || lower.includes(b.name.toLowerCase()))
       if (match) return get().chooseBranch(farmerId, match.id)
-      set((s) => ({ chat: pushChat(s.chat, farmerId, msg(farmerId, { from: 'bot', kind: 'text', text: copy.clarifyBranch() })) }))
+      set((s) => ({ chat: pushChat(s.chat, farmerId, msg(farmerId, { from: 'bot', kind: 'text', text: t.clarifyBranch() })) }))
       return
     }
     if (stage.step === 'awaiting_type') {
       const lower = text.toLowerCase()
-      if (/(team|staff|pick ?up|come|collect)/.test(lower)) return get().choosePickupType(farmerId, 'staff_pickup')
-      if (/(self|drop|bring|myself)/.test(lower)) return get().choosePickupType(farmerId, 'self_drop')
-      set((s) => ({ chat: pushChat(s.chat, farmerId, msg(farmerId, { from: 'bot', kind: 'text', text: copy.clarifyType() })) }))
+      if (/(team|staff|pick ?up|come|collect|gye)/.test(lower)) return get().choosePickupType(farmerId, 'staff_pickup')
+      if (/(self|drop|bring|myself|mede)/.test(lower)) return get().choosePickupType(farmerId, 'self_drop')
+      set((s) => ({ chat: pushChat(s.chat, farmerId, msg(farmerId, { from: 'bot', kind: 'text', text: t.clarifyType() })) }))
       return
     }
     if (stage.step === 'awaiting_location') {
-      set((s) => ({ chat: pushChat(s.chat, farmerId, msg(farmerId, { from: 'bot', kind: 'text', text: copy.nudgeLocationButton() })) }))
+      set((s) => ({ chat: pushChat(s.chat, farmerId, msg(farmerId, { from: 'bot', kind: 'text', text: t.nudgeLocationButton() })) }))
       return
     }
     if (stage.step === 'awaiting_dropoff_timing') {
       const lower = text.toLowerCase()
-      if (/today/.test(lower)) return get().chooseDropoffTiming(farmerId, 'Today')
-      if (/tomorrow/.test(lower)) return get().chooseDropoffTiming(farmerId, 'Tomorrow')
-      if (/week/.test(lower)) return get().chooseDropoffTiming(farmerId, 'This week')
-      set((s) => ({ chat: pushChat(s.chat, farmerId, msg(farmerId, { from: 'bot', kind: 'text', text: copy.clarifyTiming() })) }))
+      if (/today|ɛnnɛ|ennɛ/.test(lower)) return get().chooseDropoffTiming(farmerId, 'today')
+      if (/tomorrow|ɔkyena|okyena/.test(lower)) return get().chooseDropoffTiming(farmerId, 'tomorrow')
+      if (/week|dapɛn|dapen/.test(lower)) return get().chooseDropoffTiming(farmerId, 'this_week')
+      set((s) => ({ chat: pushChat(s.chat, farmerId, msg(farmerId, { from: 'bot', kind: 'text', text: t.clarifyTiming() })) }))
       return
     }
     // idle
@@ -362,13 +425,14 @@ export const useTallawahStore = create<Store>((set, get) => ({
     } else if (/(my request|status|order)/i.test(text)) {
       get().showMyRequests(farmerId)
     } else {
-      set((s) => ({ chat: pushChat(s.chat, farmerId, msg(farmerId, { from: 'bot', kind: 'text', text: copy.fallback() })) }))
+      set((s) => ({ chat: pushChat(s.chat, farmerId, msg(farmerId, { from: 'bot', kind: 'text', text: t.fallback() })) }))
     }
   },
 
   _finalizeRequest: (farmerId, bags, branchId, type, location, dropoffTiming) => {
     const s = get()
     const farmer = s.farmers.find((f) => f.id === farmerId)!
+    const t = copyFor(farmer.language)
     const branch = s.branches.find((b) => b.id === branchId)
     const id = nextRequestId()
     const loc =
@@ -388,7 +452,7 @@ export const useTallawahStore = create<Store>((set, get) => ({
     const cardMsg = msg(farmerId, {
       from: 'bot',
       kind: 'request_card',
-      text: copy.requestConfirmed(id),
+      text: t.requestConfirmed(id),
       requestSummary: { requestId: id, bags, type, branchName: branch?.name, status: 'unassigned', dropoffTiming },
     })
     const n = notify({
@@ -408,11 +472,14 @@ export const useTallawahStore = create<Store>((set, get) => ({
 
   showMyRequests: (farmerId) =>
     set((s) => {
+      const farmer = s.farmers.find((f) => f.id === farmerId)
+      const lang = farmer?.language
+      const t = copyFor(lang)
       const mine = s.requests.filter((r) => r.farmerId === farmerId).slice(0, 4)
       const text =
         mine.length === 0
-          ? copy.myRequestsEmpty()
-          : [copy.myRequestsHeader(), ...mine.map((r) => `${statusEmoji(r.status)} *${r.id}* — ${r.estimatedBags} bags — ${statusLabel(r.status)}`)].join(
+          ? t.myRequestsEmpty()
+          : [t.myRequestsHeader(), ...mine.map((r) => `${statusEmoji(r.status)} *${r.id}* — ${r.estimatedBags} bags — ${statusLabel(r.status, lang)}`)].join(
               '\n',
             )
       return { chat: pushChat(s.chat, farmerId, msg(farmerId, { from: 'bot', kind: 'text', text })) }
@@ -443,10 +510,11 @@ export const useTallawahStore = create<Store>((set, get) => ({
     let chat = s.chat
     const relatedRequests = s.requests.filter((r) => route.requestIds.includes(r.id))
     for (const r of relatedRequests) {
+      const t = copyFor(s.farmers.find((f) => f.id === r.farmerId)?.language)
       chat = pushChat(
         chat,
         r.farmerId,
-        msg(r.farmerId, { from: 'bot', kind: 'status_update', text: copy.routeScheduled(r.id, driver.name, dateLabel, r.estimatedBags), statusEmoji: '🚚' }),
+        msg(r.farmerId, { from: 'bot', kind: 'status_update', text: t.routeScheduled(r.id, driver.name, dateLabel, r.estimatedBags), statusEmoji: '🚚' }),
       )
     }
 
@@ -513,17 +581,18 @@ export const useTallawahStore = create<Store>((set, get) => ({
     if (!stop) return
     const isLast = shipment.legIndex === shipment.stops.length - 1
     const driver = s.drivers.find((d) => d.id === shipment.driverId)
+    const t = copyFor(s.farmers.find((f) => f.id === stop.farmerId)?.language)
 
     let chat = pushChat(
       s.chat,
       stop.farmerId,
-      msg(stop.farmerId, { from: 'bot', kind: 'status_update', text: copy.collected(requestId, actualBags, stop.estimatedBags, stop.farmerName), statusEmoji: '✅' }),
+      msg(stop.farmerId, { from: 'bot', kind: 'status_update', text: t.collected(requestId, actualBags, stop.estimatedBags, stop.farmerName), statusEmoji: '✅' }),
     )
 
     const newExceptions: ExceptionItem[] = []
     let notifications = s.notifications
     if (quality === 'fail') {
-      chat = pushChat(chat, stop.farmerId, msg(stop.farmerId, { from: 'bot', kind: 'status_update', text: copy.qualityFlagged(stop.farmerName), statusEmoji: '⚠️' }))
+      chat = pushChat(chat, stop.farmerId, msg(stop.farmerId, { from: 'bot', kind: 'status_update', text: t.qualityFlagged(stop.farmerName), statusEmoji: '⚠️' }))
       newExceptions.push({
         id: nextExceptionId(),
         relatedType: 'shipment',
@@ -600,7 +669,8 @@ export const useTallawahStore = create<Store>((set, get) => ({
         freshnessHours: packaging === 'unopened' ? 108 : 48,
         receivedBy: s.staff.name,
       })
-      chat = pushChat(chat, stop.farmerId, msg(stop.farmerId, { from: 'bot', kind: 'status_update', text: copy.receivedPass(actualBags, stop.farmerName), statusEmoji: '🏭' }))
+      const t = copyFor(s.farmers.find((f) => f.id === stop.farmerId)?.language)
+      chat = pushChat(chat, stop.farmerId, msg(stop.farmerId, { from: 'bot', kind: 'status_update', text: t.receivedPass(actualBags, stop.farmerName), statusEmoji: '🏭' }))
     }
 
     set((st) => ({

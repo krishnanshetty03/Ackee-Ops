@@ -25,6 +25,9 @@ export interface Branch {
   lng: number
 }
 
+/** chat language the farmer picked on WhatsApp — unset until their first conversation asks */
+export type Language = 'en' | 'tw'
+
 export interface Farmer {
   id: string
   name: string
@@ -37,6 +40,7 @@ export interface Farmer {
   tags: string[]
   /** last branch the farmer told us was nearest to them, via WhatsApp */
   nearestBranchId?: string
+  language?: Language
 }
 
 export interface FarmerRequest {
@@ -228,6 +232,7 @@ export interface ChatMessage {
 
 export type ChatStage =
   | { step: 'idle' }
+  | { step: 'awaiting_language' }
   | { step: 'awaiting_bags' }
   | { step: 'awaiting_branch'; bags: number }
   | { step: 'awaiting_type'; bags: number; branchId: string }

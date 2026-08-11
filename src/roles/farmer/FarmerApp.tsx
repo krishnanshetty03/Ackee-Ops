@@ -2,12 +2,15 @@ import { useEffect, useRef, useState } from 'react'
 import s from './whatsapp.module.css'
 import { useTallawahStore } from '../../store/useStore'
 import { ChatBubble } from './ChatBubble'
-import { ArrowLeft, Leaf, Package, Phone } from '../../components/icons'
+import { ArrowLeft, Globe, Leaf, Package, Phone } from '../../components/icons'
+import { composerLabels, copyFor } from '../../lib/chatCopy'
 import type { Theme } from '../../lib/useTheme'
 
 export function FarmerApp({ farmerId, theme, onBack }: { farmerId: string; theme: Theme; onBack?: () => void }) {
   const chat = useTallawahStore((st) => st.chat[farmerId] ?? [])
+  const farmer = useTallawahStore((st) => st.farmers.find((f) => f.id === farmerId))
   const startNewRequest = useTallawahStore((st) => st.startNewRequest)
+  const chooseLanguage = useTallawahStore((st) => st.chooseLanguage)
   const chooseBags = useTallawahStore((st) => st.chooseBags)
   const chooseBranch = useTallawahStore((st) => st.chooseBranch)
   const choosePickupType = useTallawahStore((st) => st.choosePickupType)
@@ -15,6 +18,10 @@ export function FarmerApp({ farmerId, theme, onBack }: { farmerId: string; theme
   const shareLocation = useTallawahStore((st) => st.shareLocation)
   const sendFreeText = useTallawahStore((st) => st.sendFreeText)
   const showMyRequests = useTallawahStore((st) => st.showMyRequests)
+
+  const lang = farmer?.language
+  const t = copyFor(lang)
+  const cl = composerLabels(lang)
 
   const [draft, setDraft] = useState('')
   const [visibleCount, setVisibleCount] = useState(chat.length)
@@ -78,6 +85,7 @@ export function FarmerApp({ farmerId, theme, onBack }: { farmerId: string; theme
 
   function handleQuickReply(kind: string, value: string) {
     if (kind !== 'quick_replies') return
+    if (value === 'en' || value === 'tw') return chooseLanguage(farmerId, value)
     if (/^\d+$/.test(value)) return chooseBags(farmerId, parseInt(value, 10))
     if (value.startsWith('BR-')) return chooseBranch(farmerId, value)
     if (value === 'staff_pickup' || value === 'self_drop') return choosePickupType(farmerId, value)
@@ -104,7 +112,7 @@ export function FarmerApp({ farmerId, theme, onBack }: { farmerId: string; theme
         </div>
         <div className={s.headerInfo}>
           <span className={s.headerName}>Tallawah Foods</span>
-          <span className={s.headerStatus}>{typing ? 'typing…' : 'Ackee Pickup Desk · online'}</span>
+          <span className={s.headerStatus}>{typing ? (lang === 'tw' ? 'ɛrekyerɛw…' : 'typing…') : lang === 'tw' ? 'Ackee Adwumam · ɛda ho' : 'Ackee Pickup Desk · online'}</span>
         </div>
         <div className={s.headerActions}>
           <Phone size={17} />
@@ -113,13 +121,14 @@ export function FarmerApp({ farmerId, theme, onBack }: { farmerId: string; theme
 
       <div className={s.scroll} ref={scrollRef}>
         <div className={s.wallpaper} />
-        <div className={s.dayChip}>Today</div>
+        <div className={s.dayChip}>{t.todayLabel()}</div>
         {visible.map((m, i) => (
           <ChatBubble
             key={m.id}
             message={m}
             isLast={i === visible.length - 1 && !typing}
             theme={theme}
+            language={lang}
             onQuickReply={(value) => handleQuickReply(m.kind, value)}
             onShareLocation={() => shareLocation(farmerId)}
           />
@@ -140,17 +149,22 @@ export function FarmerApp({ farmerId, theme, onBack }: { farmerId: string; theme
       <div className={s.composer}>
         <div className={s.quickMenu}>
           <button className={s.quickMenuBtn} onClick={() => startNewRequest(farmerId)}>
-            <Leaf size={13} /> Ackee Ready
+            <Leaf size={13} /> {cl.ackeeReady}
           </button>
           <button className={s.quickMenuBtn} onClick={() => showMyRequests(farmerId)}>
-            <Package size={13} /> My Requests
+            <Package size={13} /> {cl.myRequests}
           </button>
+          {farmer?.language && (
+            <button className={s.quickMenuBtn} onClick={() => chooseLanguage(farmerId, lang === 'tw' ? 'en' : 'tw')} aria-label="Change language">
+              <Globe size={13} /> {lang === 'tw' ? 'English' : 'Twi'}
+            </button>
+          )}
         </div>
         <div className={s.inputRow}>
           <div className={s.textInputWrap}>
             <input
               className={s.textInput}
-              placeholder="Type a message"
+              placeholder={cl.typeMessage}
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && submitDraft()}

@@ -81,6 +81,15 @@ async function sequence(get: () => ReturnType<typeof useTallawahStore.getState>)
   get().startNewRequest(farmer.id)
   await sleep(1500)
 
+  // first-ever contact asks a language — pick one so the rest of the script can proceed
+  checkAlive()
+  if (get().chatStage[farmer.id]?.step === 'awaiting_language') {
+    const language = Math.random() < 0.5 ? 'en' : 'tw'
+    get().chooseLanguage(farmer.id, language)
+    get().setSpotlight({ view: 'present', note: language === 'tw' ? `${farmer.name} picks Twi` : `${farmer.name} picks English` })
+    await sleep(1300)
+  }
+
   checkAlive()
   const bags = BAG_CHOICES[Math.floor(Math.random() * BAG_CHOICES.length)]
   get().chooseBags(farmer.id, bags)
