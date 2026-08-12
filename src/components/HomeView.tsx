@@ -18,7 +18,7 @@ const ROLES = [
   { num: '01', view: 'farmer' as AppView, icon: Leaf, title: 'Farmer', desc: 'WhatsApp channel — bags, pickup or self-drop, farm location.', tone: TONE.green },
   { num: '02', view: 'staff' as AppView, icon: Grid, title: 'Staff', desc: 'Ops dashboard — intake, dispatch, tracking, receiving, exceptions.', tone: TONE.gold },
   { num: '03', view: 'driver' as AppView, icon: Truck, title: 'Driver', desc: 'Field app — today’s route, stop by stop, bags collected.', tone: TONE.earth },
-  { num: '04', view: 'md' as AppView, icon: BarChart, title: 'Management', desc: 'Executive overview — intake, capacity, exports, revenue.', tone: TONE.neutral },
+  { num: '04', view: 'md' as AppView, icon: BarChart, title: 'Management', desc: 'Export sales — revenue to goal, pipeline, quota attainment.', tone: TONE.neutral },
 ]
 
 export function HomeView({

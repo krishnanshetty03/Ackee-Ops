@@ -72,30 +72,6 @@ export function selectExceptionKpis(s: Store) {
   return { openCount: open.length }
 }
 
-/** MD Overview — top-of-funnel volume: what farmers are reporting ready, not
- *  what's booked onto a vehicle (that's selectCapacityKpis) or in stock. */
-export function selectBagIntakeKpis(s: Store) {
-  const today = todayIso(s.now)
-  const weekMs = 7 * 24 * 3600_000
-  const todayBags = s.requests.filter((r) => todayIso(r.createdAt) === today).reduce((sum, r) => sum + r.estimatedBags, 0)
-  const weekBags = s.requests.filter((r) => s.now - r.createdAt <= weekMs).reduce((sum, r) => sum + r.estimatedBags, 0)
-  return { todayBags, weekBags }
-}
-
-/** MD Overview — farmer base health + ops throughput. "New" is relative to the
- *  roster's own most-recent join date rather than wall-clock "today", since a
- *  fixed recency window would silently decay to zero as real time passes
- *  while the seeded join dates stay fixed. */
-export function selectFarmerActivityKpis(s: Store) {
-  const activeCount = s.farmers.length - selectQuietFarmers(s).length
-  const joinTimes = s.farmers.map((f) => new Date(`${f.memberSince}T00:00:00`).getTime())
-  const newestJoin = Math.max(...joinTimes)
-  const newSignups = joinTimes.filter((t) => newestJoin - t <= 120 * 24 * 3600_000).length
-  const weekMs = 7 * 24 * 3600_000
-  const requestsThisWeek = s.requests.filter((r) => s.now - r.createdAt <= weekMs).length
-  return { totalFarmers: s.farmers.length, activeCount, newSignups, requestsThisWeek }
-}
-
 /** Average time from request created to collected (fulfilled), for today's fulfilled requests */
 export function selectAvgTurnaroundMs(s: Store): number | null {
   const today = todayIso(s.now)
