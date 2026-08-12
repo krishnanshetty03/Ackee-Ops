@@ -5,14 +5,23 @@ import { useTallawahStore } from '../../store/useStore'
 import { selectDriverActiveShipment, selectDriverHistory, selectDriverPendingRoute, selectDriverPerformanceKpis } from '../../store/selectors'
 import { Button } from '../../components/ui/Button'
 import { Sparkline } from '../../components/charts/Sparkline'
+import { CapacityMeter } from '../../components/ui/CapacityMeter'
+import { MiniMap } from '../../components/map/MiniMap'
 import { pseudoTrailingSeries } from '../../lib/pseudoSeries'
-import { CheckCircle, ChevronRight, Factory, Sparkles, Truck } from '../../components/icons'
+import { CheckCircle, ChevronRight, Factory, MapPin, Navigation, Sparkles, Truck } from '../../components/icons'
 import { fmtBags, todayIso } from '../../lib/format'
+import { navigateTo } from '../../lib/nav'
+import { FACTORY, haversineKm } from '../../lib/geo'
+import { VEHICLE_CAPACITY } from '../../lib/types'
+import type { GeoPoint } from '../../lib/types'
+import type { Theme } from '../../lib/useTheme'
 
-export function DriverHome({ driverId }: { driverId: string }) {
+export function DriverHome({ driverId, theme }: { driverId: string; theme: Theme }) {
   const setDriverTab = useTallawahStore((st) => st.setDriverTab)
   const requests = useTallawahStore((st) => st.requests)
   const now = useTallawahStore((st) => st.now)
+  const driver = useTallawahStore((st) => st.drivers.find((dr) => dr.id === driverId))!
+  const vehicle = useTallawahStore((st) => st.vehicles.find((v) => v.id === driver.vehicleId))
   const pendingRoute = useTallawahStore((st) => selectDriverPendingRoute(st, driverId))
   const activeShipment = useTallawahStore((st) => selectDriverActiveShipment(st, driverId))
   const history = useTallawahStore((st) => selectDriverHistory(st, driverId))
@@ -29,6 +38,45 @@ export function DriverHome({ driverId }: { driverId: string }) {
 
   const showPendingBanner = pendingRoute && !activeShipment
   const showActiveBanner = !!activeShipment
+
+  // ---- what's on the truck right now ----
+  const capacityBags = vehicle?.capacityBags ?? VEHICLE_CAPACITY
+  const onBoardBags = activeShipment?.stops.reduce((sum, st) => sum + (st.actualBags ?? 0), 0) ?? 0
+  const stillToCollect = activeShipment
+    ? activeShipment.stops.filter((st) => st.status !== 'completed').reduce((sum, st) => sum + st.estimatedBags, 0)
+    : (pendingRoute?.totalEstimatedBags ?? 0)
+  const roomLeft = capacityBags - onBoardBags
+  const capacityCaption = activeShipment
+    ? stillToCollect === 0
+      ? `${fmtBags(roomLeft)} of room left · every stop collected`
+      : stillToCollect > roomLeft
+        ? `${fmtBags(stillToCollect)} still to collect — ${stillToCollect - roomLeft} more than will fit.`
+        : `${fmtBags(roomLeft)} of room left · ${fmtBags(stillToCollect)} still to collect`
+    : pendingRoute
+      ? `Empty · ${fmtBags(pendingRoute.totalEstimatedBags)} planned on your next route`
+      : 'Empty — ready for the next route.'
+
+  // ---- where to head next ----
+  // heading home covers both the return leg and waiting at the receiving desk
+  const headingHome = !!activeShipment && (activeShipment.legIndex >= activeShipment.stops.length || activeShipment.status === 'arrived_factory')
+  const nextStop = activeShipment?.stops.find((st) => st.status !== 'completed')
+  const firstPendingStop = !activeShipment && pendingRoute ? requests.find((r) => r.id === pendingRoute.requestIds[0]) : undefined
+  const destination: { title: string; point: GeoPoint; name: string; meta: string; hue: number } =
+    activeShipment && nextStop && !headingHome
+      ? { title: 'Next stop', point: nextStop.location, name: nextStop.farmerName, meta: `${nextStop.location.community} · ${fmtBags(nextStop.estimatedBags)} expected`, hue: 40 }
+      : firstPendingStop
+        ? { title: 'First stop', point: firstPendingStop.location, name: firstPendingStop.farmerName, meta: `${firstPendingStop.location.community} · ${fmtBags(firstPendingStop.estimatedBags)} expected`, hue: 40 }
+        : {
+            title: activeShipment?.status === 'arrived_factory' ? 'At the depot' : headingHome ? 'Heading to the depot' : 'Home depot',
+            point: FACTORY,
+            name: 'Kumasi Processing Depot',
+            meta: FACTORY.community,
+            hue: 150,
+          }
+  // only meaningful while a shipment is live — that's the only time we have a real position
+  const distanceKm = activeShipment ? haversineKm(activeShipment.position, destination.point) : null
+  // "0.0 km away" is true but useless once the truck is parked at the gate
+  const distanceLabel = distanceKm === null ? null : distanceKm < 0.15 ? "You're here" : `${distanceKm.toFixed(1)} km away`
 
   return (
     <>
@@ -83,6 +131,39 @@ export function DriverHome({ driverId }: { driverId: string }) {
           <div style={{ fontSize: 12.5, color: 'var(--muted)', maxWidth: 220 }}>No route assigned yet. We'll notify you here the moment dispatch sends one over.</div>
         </div>
       )}
+
+      <div className={d.capacityCard}>
+        <div className={d.routeSummaryTop}>
+          <span className={d.routeSummaryTitle}>
+            <Truck size={15} style={{ display: 'inline', verticalAlign: -2, marginRight: 6 }} />
+            Vehicle capacity
+          </span>
+          <span className={d.capacityPlate}>{vehicle?.plate}</span>
+        </div>
+        <div style={{ marginTop: 12 }}>
+          <CapacityMeter value={onBoardBags} ceiling={capacityBags} label="On board" caption={capacityCaption} />
+        </div>
+      </div>
+
+      <div className={d.routeSummary}>
+        <div className={d.routeSummaryTop}>
+          <span className={d.routeSummaryTitle}>
+            <MapPin size={15} style={{ display: 'inline', verticalAlign: -2, marginRight: 6 }} />
+            {destination.title}
+          </span>
+          {distanceLabel && <span className={d.locDistance}>{distanceLabel}</span>}
+        </div>
+        <div className={d.stopMapWrap} style={{ marginTop: 10 }}>
+          <MiniMap point={destination.point} theme={theme} height={128} hue={destination.hue} />
+        </div>
+        <div className={d.locName}>{destination.name}</div>
+        <div className={d.locMeta}>{destination.meta}</div>
+        <div className={d.stopActions}>
+          <Button variant="ghost" size="sm" icon={<Navigation size={13} />} onClick={() => navigateTo(destination.point.lat, destination.point.lng)}>
+            Navigate
+          </Button>
+        </div>
+      </div>
 
       <div>
         <div className={d.sectionLabel}>Today</div>

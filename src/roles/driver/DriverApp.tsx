@@ -54,7 +54,7 @@ export function DriverApp({ driverId, onSignOut, theme }: { driverId: string; on
       </div>
 
       <div className={d.body}>
-        {driverTab === 'home' && <DriverHome driverId={driverId} />}
+        {driverTab === 'home' && <DriverHome driverId={driverId} theme={theme} />}
         {driverTab === 'route' && <DriverRoute driverId={driverId} theme={theme} />}
         {driverTab === 'history' && <DriverHistory driverId={driverId} />}
         {driverTab === 'profile' && <DriverProfile driverId={driverId} onSignOut={onSignOut} />}

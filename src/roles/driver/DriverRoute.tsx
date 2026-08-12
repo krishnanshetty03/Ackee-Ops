@@ -10,12 +10,9 @@ import { MiniMap } from '../../components/map/MiniMap'
 import { useToast } from '../../components/ui/Toast'
 import { Check, CheckCircle, Factory, MapPin, Navigation, Route as RouteIcon, Truck, X } from '../../components/icons'
 import { fmtBags } from '../../lib/format'
+import { navigateTo } from '../../lib/nav'
 import type { QualityResult } from '../../lib/types'
 import type { Theme } from '../../lib/useTheme'
-
-function navigateTo(lat: number, lng: number) {
-  window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`, '_blank', 'noopener,noreferrer')
-}
 
 export function DriverRoute({ driverId, theme }: { driverId: string; theme: Theme }) {
   const requests = useTallawahStore((st) => st.requests)

@@ -232,6 +232,48 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 10px;
+}
+
+/* the driver's headline card — how much room is left on the truck decides
+   whether the next stop can even be picked up, so it outranks the tallies */
+.capacityCard {
+  background: var(--surface);
+  border: 1.5px solid var(--gold);
+  box-shadow: 0 0 0 3px var(--gold-soft);
+  border-radius: var(--r-lg);
+  padding: 15px;
+}
+
+.capacityPlate {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-2);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-pill);
+  padding: 2px 8px;
+  white-space: nowrap;
+}
+
+.locDistance {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--gold-ink);
+  white-space: nowrap;
+}
+
+.locName {
+  font-size: 13.5px;
+  font-weight: 700;
+  margin-top: 10px;
+}
+.locMeta {
+  font-size: 11.5px;
+  color: var(--muted);
+  margin-top: 2px;
 }
 .routeSummaryTitle {
   font-family: var(--font-display);
