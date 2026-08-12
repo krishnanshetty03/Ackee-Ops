@@ -321,6 +321,13 @@
   margin-top: 3px;
 }
 
+.stopMapWrap {
+  margin-top: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  overflow: hidden;
+}
+
 .bagEntry {
   display: flex;
   align-items: center;

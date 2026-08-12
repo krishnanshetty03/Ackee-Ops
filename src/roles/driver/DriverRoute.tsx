@@ -6,12 +6,18 @@ import { Button } from '../../components/ui/Button'
 import { CapacityMeter } from '../../components/ui/CapacityMeter'
 import { NumberStepper, RadioCards } from '../../components/ui/Field'
 import { EmptyState } from '../../components/ui/EmptyState'
+import { MiniMap } from '../../components/map/MiniMap'
 import { useToast } from '../../components/ui/Toast'
 import { Check, CheckCircle, Factory, MapPin, Navigation, Route as RouteIcon, Truck, X } from '../../components/icons'
 import { fmtBags } from '../../lib/format'
 import type { QualityResult } from '../../lib/types'
+import type { Theme } from '../../lib/useTheme'
 
-export function DriverRoute({ driverId }: { driverId: string }) {
+function navigateTo(lat: number, lng: number) {
+  window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`, '_blank', 'noopener,noreferrer')
+}
+
+export function DriverRoute({ driverId, theme }: { driverId: string; theme: Theme }) {
   const requests = useTallawahStore((st) => st.requests)
   const pendingRoute = useTallawahStore((st) => selectDriverPendingRoute(st, driverId))
   const activeShipment = useTallawahStore((st) => selectDriverActiveShipment(st, driverId))
@@ -182,11 +188,19 @@ export function DriverRoute({ driverId }: { driverId: string }) {
                   </span>
 
                   {isCurrent && stop.status === 'pending' && (
-                    <div className={d.stopActions}>
-                      <Button variant="primary" size="sm" disabled={!nearlyThere} icon={<Truck size={13} />} onClick={() => driverMarkStopArrived(activeShipment.id, stop.requestId)}>
-                        {nearlyThere ? 'Arrived' : 'On the way…'}
-                      </Button>
-                    </div>
+                    <>
+                      <div className={d.stopMapWrap}>
+                        <MiniMap point={stop.location} theme={theme} height={110} hue={40} />
+                      </div>
+                      <div className={d.stopActions}>
+                        <Button variant="primary" size="sm" disabled={!nearlyThere} icon={<Truck size={13} />} onClick={() => driverMarkStopArrived(activeShipment.id, stop.requestId)}>
+                          {nearlyThere ? 'Arrived' : 'On the way…'}
+                        </Button>
+                        <Button variant="ghost" size="sm" icon={<Navigation size={13} />} onClick={() => navigateTo(stop.location.lat, stop.location.lng)}>
+                          Navigate
+                        </Button>
+                      </div>
+                    </>
                   )}
 
                   {isCurrent && stop.status === 'arrived' && (

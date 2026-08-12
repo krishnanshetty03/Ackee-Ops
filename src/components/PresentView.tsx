@@ -79,7 +79,7 @@ export function PresentView({ theme, onToggleTheme }: { theme: Theme; onToggleTh
         </div>
         <div className={s.panelStage} style={{ justifyContent: 'center' }}>
           <PhoneFrame dark={theme === 'dark'}>
-            <DriverApp driverId={activeDriverId} />
+            <DriverApp driverId={activeDriverId} theme={theme} />
           </PhoneFrame>
         </div>
       </div>

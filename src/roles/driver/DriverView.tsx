@@ -43,7 +43,7 @@ export function DriverView({ theme, onToggleTheme, onSignOut }: { theme: Theme; 
       <div className={ps.stageArea}>
         <div className={ps.phoneShadowFloor} style={{ width: 'min(392px, 88vw)' }}>
           <PhoneFrame dark={theme === 'dark'}>
-            <DriverApp driverId={activeDriverId} onSignOut={onSignOut} />
+            <DriverApp driverId={activeDriverId} onSignOut={onSignOut} theme={theme} />
           </PhoneFrame>
         </div>
       </div>

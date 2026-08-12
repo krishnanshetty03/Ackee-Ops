@@ -7,6 +7,7 @@ import { DriverRoute } from './DriverRoute'
 import { DriverHistory } from './DriverHistory'
 import { DriverProfile } from './DriverProfile'
 import type { DriverTab } from '../../lib/types'
+import type { Theme } from '../../lib/useTheme'
 
 const NAV: { tab: DriverTab; label: string; icon: (p: { size?: number }) => JSX.Element }[] = [
   { tab: 'home', label: 'Home', icon: Home },
@@ -21,7 +22,7 @@ function greetingFor(hour: number) {
   return 'Good evening'
 }
 
-export function DriverApp({ driverId, onSignOut }: { driverId: string; onSignOut?: () => void }) {
+export function DriverApp({ driverId, onSignOut, theme }: { driverId: string; onSignOut?: () => void; theme: Theme }) {
   const driver = useTallawahStore((st) => st.drivers.find((d2) => d2.id === driverId))!
   const vehicle = useTallawahStore((st) => st.vehicles.find((v) => v.id === driver.vehicleId))
   const driverTab = useTallawahStore((st) => st.driverTab)
@@ -54,7 +55,7 @@ export function DriverApp({ driverId, onSignOut }: { driverId: string; onSignOut
 
       <div className={d.body}>
         {driverTab === 'home' && <DriverHome driverId={driverId} />}
-        {driverTab === 'route' && <DriverRoute driverId={driverId} />}
+        {driverTab === 'route' && <DriverRoute driverId={driverId} theme={theme} />}
         {driverTab === 'history' && <DriverHistory driverId={driverId} />}
         {driverTab === 'profile' && <DriverProfile driverId={driverId} onSignOut={onSignOut} />}
       </div>
