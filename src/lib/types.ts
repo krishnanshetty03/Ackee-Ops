@@ -304,6 +304,29 @@ export interface OnlineStoreSnapshot {
   topMarket: string
 }
 
+// B2B sales pipeline — retail & distribution partners abroad, separate from the
+// online store's consumer orders above. A different motion (relationship-managed
+// deals with a named rep) than the transactional ONLINE_STORE snapshot.
+export type DealStage = 'prospecting' | 'qualified' | 'proposal' | 'negotiation' | 'closed_won' | 'closed_lost'
+
+export interface SalesRep {
+  id: string
+  name: string
+  region: string
+  quotaUsd: number
+}
+
+export interface SalesDeal {
+  id: string
+  account: string
+  market: string
+  stage: DealStage
+  valueUsd: number
+  repId: string
+  /** actual close date once won/lost, expected close date while still open */
+  closeDate: string // ISO date
+}
+
 // ---------------- UI-only ephemeral state ----------------
 
 export type AppView = 'home' | 'farmer' | 'staff' | 'driver' | 'md' | 'present'

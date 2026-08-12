@@ -111,6 +111,225 @@
   gap: 7px;
 }
 
+/* ---- sales performance dashboard ---- */
+
+.sectionHead {
+  margin: 34px 0 16px;
+  max-width: 62ch;
+}
+
+.sectionTitle {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0 0 6px;
+}
+
+/* six tracks so tiles can sit 3-up (span 2) or 2-up (span 3) in the same grid,
+   the way a Salesforce dashboard mixes component widths on one canvas */
+.dashGrid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 16px;
+}
+/* tiles stretch to their row's height and push their footnote to the bottom —
+   otherwise the shorter tile in a row leaves a dead gap under it */
+.dashGrid > * {
+  display: flex;
+  flex-direction: column;
+}
+.span2 {
+  grid-column: span 2;
+}
+.span3 {
+  grid-column: span 3;
+}
+
+@media (max-width: 1020px) {
+  .dashGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .span2,
+  .span3 {
+    grid-column: span 1;
+  }
+}
+
+@media (max-width: 640px) {
+  .dashGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.tileFoot {
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+/* flex: none — these wrap a width:100%/height:auto SVG, which a flex column will
+   otherwise squeeze until the drawing spills over whatever sits below it */
+.gaugeWrap {
+  flex: none;
+  margin-top: 10px;
+}
+
+.gaugeReadout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin-top: 6px;
+}
+/* .deltaBadge pins itself to flex-start for the stat tiles; under the dial it
+   belongs on the centre line with the figure above it */
+.gaugeReadout .deltaBadge {
+  align-self: center;
+  margin-top: 0;
+}
+
+.gaugeValue {
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.funnelWrap {
+  flex: none;
+  display: flex;
+  justify-content: center;
+  margin-top: 14px;
+}
+
+/* ---- key metrics ---- */
+
+.kmList {
+  display: flex;
+  flex-direction: column;
+  margin-top: 8px;
+}
+
+.kmRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--line);
+}
+.kmRow:last-child {
+  border-bottom: none;
+}
+
+.kmLabel {
+  font-size: 12.5px;
+  color: var(--text-2);
+}
+
+.kmValue {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.kmValueLost {
+  color: var(--red-ink);
+}
+
+/* ---- open opportunities table ---- */
+
+.dealTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 12px;
+}
+
+.dealTable th {
+  text-align: left;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 0 8px 7px 0;
+  border-bottom: 1px solid var(--border);
+}
+.dealTable th:last-child,
+.dealTable td:last-child {
+  padding-right: 0;
+}
+
+.dealTable td {
+  padding: 9px 8px 9px 0;
+  border-bottom: 1px solid var(--line);
+  vertical-align: middle;
+}
+.dealTable tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.thNum {
+  text-align: right;
+}
+
+.acctName {
+  font-size: 12.5px;
+  font-weight: 700;
+}
+.acctMeta {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 1px;
+}
+
+.stagePill {
+  display: inline-block;
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: var(--r-pill);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  white-space: nowrap;
+}
+
+.numCell {
+  text-align: right;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.probWrap {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+  min-width: 42px;
+}
+
+.probTrack {
+  width: 100%;
+  height: 4px;
+  border-radius: var(--r-pill);
+  background: var(--surface-inset);
+  overflow: hidden;
+}
+
+.probFill {
+  height: 100%;
+  border-radius: var(--r-pill);
+  background: var(--gold-fill);
+}
+
 /* ---- big stat tiles ---- */
 
 .intakeRow {
@@ -162,6 +381,11 @@
 .deltaBadge.down {
   background: var(--red-soft);
   color: var(--red-ink);
+}
+/* matches the gauge's middle band — close enough to the number to not be alarming */
+.deltaBadge.mid {
+  background: var(--gold-soft);
+  color: var(--gold-ink);
 }
 
 .miniStatRow {
@@ -248,6 +472,67 @@
 .readinessMeta {
   font-size: 11px;
   color: var(--muted);
+}
+
+/* ---- quota attainment ---- */
+
+.repList {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.repRow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.repHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+.repName {
+  font-size: 12.5px;
+  font-weight: 700;
+}
+.repRegion {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 1px;
+}
+.repAttainment {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 15px;
+  flex: none;
+}
+
+.repBarTrack {
+  height: 6px;
+  border-radius: var(--r-pill);
+  background: var(--surface-inset);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+.repBarFill {
+  height: 100%;
+  border-radius: var(--r-pill);
+  background: linear-gradient(90deg, var(--gold-fill), #f4a600);
+  transition: width 0.5s ease;
+}
+
+.repFigures {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.repFiguresMuted {
+  color: var(--muted);
+  font-weight: 500;
 }
 
 /* ---- exceptions ---- */

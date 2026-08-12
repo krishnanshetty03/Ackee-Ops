@@ -2,6 +2,7 @@ import { FACTORY, FARM_COMMUNITIES, jitter } from './geo'
 import { todayIso } from './format'
 import type {
   Branch,
+  DealStage,
   Driver,
   ExceptionItem,
   ExportClearance,
@@ -11,6 +12,8 @@ import type {
   FollowUpTask,
   OnlineStoreSnapshot,
   Route,
+  SalesDeal,
+  SalesRep,
   Shipment,
   StaffMember,
   StockEntry,
@@ -80,6 +83,189 @@ export const ONLINE_STORE: OnlineStoreSnapshot = {
   ordersLastMonth: 498,
   avgOrderValueUsd: 30.15,
   topMarket: 'United Kingdom',
+}
+
+// B2B sales pipeline — a small rep per export market, working retail and
+// distribution partnerships. Separate motion from ONLINE_STORE's consumer orders.
+//
+// SALES_DEALS below is the *only* hand-written sales figure in the app: the
+// revenue gauge, quarter/month charts, funnel, win rate, key metrics, top
+// accounts and rep leaderboard on the MD dashboard are all groupings of this one
+// list, so no two tiles can drift apart. Same idea as a Salesforce dashboard,
+// where every component is just another report over the Opportunity object.
+
+/** the fiscal year the MD dashboard reports on — calendar year here */
+export const SALES_FY = 2026
+export const SALES_FY_LABEL = 'FY26'
+
+export const SALES_REPS: SalesRep[] = [
+  { id: 'REP-UK', name: 'Kwabena Osei', region: 'United Kingdom', quotaUsd: 40000 },
+  { id: 'REP-US', name: 'Efua Mensah', region: 'United States', quotaUsd: 36000 },
+  { id: 'REP-CA', name: 'Yaa Asantewaa', region: 'Canada', quotaUsd: 30000 },
+]
+
+export const SALES_DEALS: SalesDeal[] = [
+  // open — expected close dates ahead of today
+  { id: 'DEAL-01', account: "Sainsbury's", market: 'United Kingdom', stage: 'prospecting', valueUsd: 15000, repId: 'REP-UK', closeDate: '2026-11-20' },
+  { id: 'DEAL-02', account: 'Walmart Canada', market: 'Canada', stage: 'prospecting', valueUsd: 12000, repId: 'REP-CA', closeDate: '2026-12-04' },
+  { id: 'DEAL-03', account: 'Publix', market: 'United States', stage: 'prospecting', valueUsd: 10000, repId: 'REP-US', closeDate: '2026-11-02' },
+  { id: 'DEAL-04', account: 'Morrisons', market: 'United Kingdom', stage: 'qualified', valueUsd: 13000, repId: 'REP-UK', closeDate: '2026-10-16' },
+  { id: 'DEAL-05', account: 'Loblaws', market: 'Canada', stage: 'qualified', valueUsd: 9500, repId: 'REP-CA', closeDate: '2026-10-30' },
+  { id: 'DEAL-06', account: "Trader Joe's", market: 'United States', stage: 'qualified', valueUsd: 9000, repId: 'REP-US', closeDate: '2026-10-09' },
+  { id: 'DEAL-07', account: 'Whole Foods Northeast', market: 'United States', stage: 'proposal', valueUsd: 18000, repId: 'REP-US', closeDate: '2026-09-25' },
+  { id: 'DEAL-08', account: 'Save-On-Foods', market: 'Canada', stage: 'proposal', valueUsd: 8300, repId: 'REP-CA', closeDate: '2026-10-12' },
+  { id: 'DEAL-09', account: 'Tesco', market: 'United Kingdom', stage: 'negotiation', valueUsd: 12500, repId: 'REP-UK', closeDate: '2026-09-04' },
+  { id: 'DEAL-10', account: 'Albertsons', market: 'United States', stage: 'negotiation', valueUsd: 8500, repId: 'REP-US', closeDate: '2026-09-15' },
+  // closed won — spread across the fiscal year so month/quarter trends are real
+  { id: 'DEAL-11', account: 'Sprouts Farmers Market', market: 'United States', stage: 'closed_won', valueUsd: 3100, repId: 'REP-US', closeDate: '2026-01-28' },
+  { id: 'DEAL-12', account: 'Waitrose', market: 'United Kingdom', stage: 'closed_won', valueUsd: 5800, repId: 'REP-UK', closeDate: '2026-02-11' },
+  { id: 'DEAL-13', account: 'Wegmans', market: 'United States', stage: 'closed_won', valueUsd: 7500, repId: 'REP-US', closeDate: '2026-03-05' },
+  { id: 'DEAL-14', account: 'Farm Boy', market: 'Canada', stage: 'closed_won', valueUsd: 4100, repId: 'REP-CA', closeDate: '2026-03-19' },
+  { id: 'DEAL-15', account: 'Holland & Barrett', market: 'United Kingdom', stage: 'closed_won', valueUsd: 4200, repId: 'REP-UK', closeDate: '2026-04-06' },
+  { id: 'DEAL-16', account: 'Sobeys', market: 'Canada', stage: 'closed_won', valueUsd: 6200, repId: 'REP-CA', closeDate: '2026-04-24' },
+  { id: 'DEAL-17', account: "Longo's", market: 'Canada', stage: 'closed_won', valueUsd: 3200, repId: 'REP-CA', closeDate: '2026-05-08' },
+  { id: 'DEAL-18', account: 'H-E-B', market: 'United States', stage: 'closed_won', valueUsd: 3400, repId: 'REP-US', closeDate: '2026-05-21' },
+  { id: 'DEAL-19', account: 'Booths', market: 'United Kingdom', stage: 'closed_won', valueUsd: 6000, repId: 'REP-UK', closeDate: '2026-06-17' },
+  { id: 'DEAL-20', account: 'Kroger', market: 'United States', stage: 'closed_won', valueUsd: 6000, repId: 'REP-US', closeDate: '2026-06-25' },
+  { id: 'DEAL-21', account: 'Ocado', market: 'United Kingdom', stage: 'closed_won', valueUsd: 10500, repId: 'REP-UK', closeDate: '2026-07-22' },
+  { id: 'DEAL-22', account: 'Fortinos', market: 'Canada', stage: 'closed_won', valueUsd: 8000, repId: 'REP-CA', closeDate: '2026-08-05' },
+  // closed lost
+  { id: 'DEAL-23', account: 'Marks & Spencer', market: 'United Kingdom', stage: 'closed_lost', valueUsd: 9000, repId: 'REP-UK', closeDate: '2026-02-24' },
+  { id: 'DEAL-24', account: 'Aldi UK', market: 'United Kingdom', stage: 'closed_lost', valueUsd: 11000, repId: 'REP-UK', closeDate: '2026-04-30' },
+  { id: 'DEAL-25', account: 'Costco Wholesale', market: 'United States', stage: 'closed_lost', valueUsd: 16500, repId: 'REP-US', closeDate: '2026-06-09' },
+  { id: 'DEAL-26', account: 'Metro Canada', market: 'Canada', stage: 'closed_lost', valueUsd: 8000, repId: 'REP-CA', closeDate: '2026-07-19' },
+]
+
+/** Odds of closing, driven by the stage rather than set per deal — the same
+ *  default Salesforce ships with, and it keeps a deal's forecast honest as it
+ *  moves rather than depending on whoever last touched the record. */
+export const STAGE_PROBABILITY: Record<DealStage, number> = {
+  prospecting: 0.1,
+  qualified: 0.25,
+  proposal: 0.5,
+  negotiation: 0.75,
+  closed_won: 1,
+  closed_lost: 0,
+}
+
+/** the four live stages, in the order a deal moves through them */
+export const OPEN_STAGES: DealStage[] = ['prospecting', 'qualified', 'proposal', 'negotiation']
+
+const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
+const isOpen = (d: SalesDeal) => d.stage !== 'closed_won' && d.stage !== 'closed_lost'
+const isWon = (d: SalesDeal) => d.stage === 'closed_won'
+const isLost = (d: SalesDeal) => d.stage === 'closed_lost'
+
+/** 0-11 if the date falls in the reporting fiscal year, else null */
+function fyMonth(dateIso: string): number | null {
+  const [year, month] = dateIso.split('-').map(Number)
+  return year === SALES_FY ? month - 1 : null
+}
+
+const wonThisFy = () => SALES_DEALS.filter((d) => isWon(d) && fyMonth(d.closeDate) !== null)
+
+/** last month with a win — the "to date" half of FYTD, read off the data rather
+ *  than the wall clock so the charts stay stable whatever day the demo runs */
+function fytdThroughMonth(): number {
+  const months = wonThisFy().map((d) => fyMonth(d.closeDate) as number)
+  return months.length === 0 ? 0 : Math.max(...months)
+}
+
+/** company revenue goal = what the reps have been asked to bring in between them */
+export function salesGoalUsd() {
+  return SALES_REPS.reduce((sum, r) => sum + r.quotaUsd, 0)
+}
+
+export function salesFytdWonUsd() {
+  return wonThisFy().reduce((sum, d) => sum + d.valueUsd, 0)
+}
+
+export function salesRevenueByMonth() {
+  const through = fytdThroughMonth()
+  return MONTH_LABELS.slice(0, through + 1).map((label, i) => ({
+    label,
+    valueUsd: wonThisFy()
+      .filter((d) => fyMonth(d.closeDate) === i)
+      .reduce((sum, d) => sum + d.valueUsd, 0),
+  }))
+}
+
+export function salesRevenueByQuarter() {
+  const throughQuarter = Math.floor(fytdThroughMonth() / 3)
+  return Array.from({ length: throughQuarter + 1 }, (_, q) => ({
+    label: `Q${q + 1}`,
+    valueUsd: wonThisFy()
+      .filter((d) => Math.floor((fyMonth(d.closeDate) as number) / 3) === q)
+      .reduce((sum, d) => sum + d.valueUsd, 0),
+  }))
+}
+
+export function salesOpenPipelineUsd() {
+  return SALES_DEALS.filter(isOpen).reduce((sum, d) => sum + d.valueUsd, 0)
+}
+
+/** open pipeline discounted by each stage's odds — the number to forecast on,
+ *  since the raw pipeline total assumes every live deal lands */
+export function salesWeightedForecastUsd() {
+  return SALES_DEALS.filter(isOpen).reduce((sum, d) => sum + d.valueUsd * STAGE_PROBABILITY[d.stage], 0)
+}
+
+export function salesAvgWonDealUsd() {
+  const won = wonThisFy()
+  return won.length === 0 ? 0 : won.reduce((sum, d) => sum + d.valueUsd, 0) / won.length
+}
+
+export function salesLostUsd() {
+  return SALES_DEALS.filter(isLost).reduce((sum, d) => sum + d.valueUsd, 0)
+}
+
+export function salesWinRate(): number | null {
+  const won = SALES_DEALS.filter(isWon).length
+  const lost = SALES_DEALS.filter(isLost).length
+  const decided = won + lost
+  return decided === 0 ? null : won / decided
+}
+
+/** live pipeline by stage, widest first — the funnel */
+export function salesOpenFunnel() {
+  return OPEN_STAGES.map((stage) => {
+    const deals = SALES_DEALS.filter((d) => d.stage === stage)
+    return { stage, count: deals.length, valueUsd: deals.reduce((sum, d) => sum + d.valueUsd, 0) }
+  })
+}
+
+const repName = (repId: string) => SALES_REPS.find((r) => r.id === repId)?.name ?? '—'
+
+export function salesTopOpenDeals(limit = 6) {
+  return SALES_DEALS.filter(isOpen)
+    .slice()
+    .sort((a, b) => b.valueUsd - a.valueUsd)
+    .slice(0, limit)
+    .map((deal) => ({ deal, probability: STAGE_PROBABILITY[deal.stage], repName: repName(deal.repId) }))
+}
+
+export function salesTopAccountsByRevenue(limit = 6) {
+  const byAccount = new Map<string, { account: string; market: string; repId: string; valueUsd: number }>()
+  for (const d of wonThisFy()) {
+    const existing = byAccount.get(d.account)
+    if (existing) existing.valueUsd += d.valueUsd
+    else byAccount.set(d.account, { account: d.account, market: d.market, repId: d.repId, valueUsd: d.valueUsd })
+  }
+  return [...byAccount.values()]
+    .sort((a, b) => b.valueUsd - a.valueUsd)
+    .slice(0, limit)
+    .map((a) => ({ ...a, repName: repName(a.repId) }))
+}
+
+export function salesRepPerformance() {
+  return SALES_REPS.map((rep) => {
+    const deals = SALES_DEALS.filter((d) => d.repId === rep.id)
+    const closedWonUsd = deals.filter(isWon).reduce((sum, d) => sum + d.valueUsd, 0)
+    const dealsWon = deals.filter(isWon).length
+    const dealsOpen = deals.filter(isOpen).length
+    return { rep, closedWonUsd, dealsWon, dealsOpen, attainment: Math.min(1, closedWonUsd / rep.quotaUsd) }
+  })
 }
 
 function communityFor(name: string) {

@@ -76,6 +76,13 @@ export function fmtUsd(n: number): string {
   return `$${Math.round(n).toLocaleString('en-US')}`
 }
 
+/** short form for chart labels and axis ticks, where the full figure won't fit */
+export function fmtUsdCompact(n: number): string {
+  if (Math.abs(n) < 1000) return `$${Math.round(n)}`
+  const k = n / 1000
+  return `$${Number.isInteger(k) ? k : k.toFixed(1)}k`
+}
+
 export function fmtRelativeTime(epochMs: number, now: number): string {
   const diff = Math.max(0, now - epochMs)
   const s = Math.floor(diff / 1000)
