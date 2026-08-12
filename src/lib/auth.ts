@@ -12,3 +12,8 @@ export const DRIVER_CREDENTIAL: DemoCredential = {
   username: 'driver@tallawahfoods.com',
   password: 'demo1234',
 }
+
+export const MD_CREDENTIAL: DemoCredential = {
+  username: 'md@tallawahfoods.com',
+  password: 'demo1234',
+}

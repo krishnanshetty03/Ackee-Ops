@@ -72,6 +72,30 @@ export function selectExceptionKpis(s: Store) {
   return { openCount: open.length }
 }
 
+/** MD Overview — top-of-funnel volume: what farmers are reporting ready, not
+ *  what's booked onto a vehicle (that's selectCapacityKpis) or in stock. */
+export function selectBagIntakeKpis(s: Store) {
+  const today = todayIso(s.now)
+  const weekMs = 7 * 24 * 3600_000
+  const todayBags = s.requests.filter((r) => todayIso(r.createdAt) === today).reduce((sum, r) => sum + r.estimatedBags, 0)
+  const weekBags = s.requests.filter((r) => s.now - r.createdAt <= weekMs).reduce((sum, r) => sum + r.estimatedBags, 0)
+  return { todayBags, weekBags }
+}
+
+/** MD Overview — farmer base health + ops throughput. "New" is relative to the
+ *  roster's own most-recent join date rather than wall-clock "today", since a
+ *  fixed recency window would silently decay to zero as real time passes
+ *  while the seeded join dates stay fixed. */
+export function selectFarmerActivityKpis(s: Store) {
+  const activeCount = s.farmers.length - selectQuietFarmers(s).length
+  const joinTimes = s.farmers.map((f) => new Date(`${f.memberSince}T00:00:00`).getTime())
+  const newestJoin = Math.max(...joinTimes)
+  const newSignups = joinTimes.filter((t) => newestJoin - t <= 120 * 24 * 3600_000).length
+  const weekMs = 7 * 24 * 3600_000
+  const requestsThisWeek = s.requests.filter((r) => s.now - r.createdAt <= weekMs).length
+  return { totalFarmers: s.farmers.length, activeCount, newSignups, requestsThisWeek }
+}
+
 /** Average time from request created to collected (fulfilled), for today's fulfilled requests */
 export function selectAvgTurnaroundMs(s: Store): number | null {
   const today = todayIso(s.now)
@@ -111,6 +135,46 @@ export function selectDriverPendingRoute(s: Store, driverId: string) {
 
 export function selectDriverHistory(s: Store, driverId: string) {
   return s.shipments.filter((sh) => sh.driverId === driverId && sh.status === 'received').sort((a, b) => (b.closedAt ?? 0) - (a.closedAt ?? 0))
+}
+
+/** Driver's own performance, for their home dashboard — scanned directly off
+ *  completed stops across every shipment they've run (active, awaiting
+ *  receiving, or already received), not gated to closed-out history only, so
+ *  today's in-progress work counts immediately rather than after handoff. */
+export function selectDriverPerformanceKpis(s: Store, driverId: string) {
+  const weekMs = 7 * 24 * 3600_000
+  let weekStops = 0
+  let weekBags = 0
+  let lifetimeStops = 0
+  let lifetimeBags = 0
+  let pass = 0
+  let fail = 0
+
+  for (const sh of s.shipments) {
+    if (sh.driverId !== driverId) continue
+    for (const stop of sh.stops) {
+      if (stop.status !== 'completed' || !stop.completedAt) continue
+      const bags = stop.actualBags ?? 0
+      lifetimeStops += 1
+      lifetimeBags += bags
+      if (s.now - stop.completedAt <= weekMs) {
+        weekStops += 1
+        weekBags += bags
+      }
+      if (stop.quality === 'pass') pass += 1
+      else if (stop.quality === 'fail') fail += 1
+    }
+  }
+
+  const graded = pass + fail
+  return {
+    weekStops,
+    weekBags,
+    lifetimeStops,
+    lifetimeBags,
+    avgBagsPerStop: lifetimeStops === 0 ? 0 : Math.round(lifetimeBags / lifetimeStops),
+    qualityPassRate: graded === 0 ? null : pass / graded,
+  }
 }
 
 // ==================== FARMER CRM ====================

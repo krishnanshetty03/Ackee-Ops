@@ -1,6 +1,6 @@
 let reqSeq = 200
-let routeSeq = 40
-let shipSeq = 40
+let routeSeq = 43
+let shipSeq = 43
 let excSeq = 10
 let notifSeq = 0
 let noteSeq = 2
@@ -70,6 +70,10 @@ export function nextTaskId() {
 
 export function fmtBags(n: number) {
   return `${n} ${n === 1 ? 'bag' : 'bags'}`
+}
+
+export function fmtUsd(n: number): string {
+  return `$${Math.round(n).toLocaleString('en-US')}`
 }
 
 export function fmtRelativeTime(epochMs: number, now: number): string {

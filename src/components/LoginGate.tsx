@@ -2,11 +2,11 @@ import { useState, type FormEvent } from 'react'
 import s from './LoginGate.module.css'
 import { Button } from './ui/Button'
 import { Input, FieldGroup } from './ui/Field'
-import { ArrowLeft, Grid, Key, Truck } from './icons'
+import { ArrowLeft, BarChart, Grid, Key, Truck } from './icons'
 import type { DemoCredential } from '../lib/types'
 
 interface LoginGateProps {
-  role: 'staff' | 'driver'
+  role: 'staff' | 'driver' | 'md'
   credential: DemoCredential
   onSuccess: () => void
   onBack: () => void
@@ -22,6 +22,11 @@ const COPY = {
     icon: Truck,
     title: 'Driver Login',
     subtitle: 'Tallawah Field App',
+  },
+  md: {
+    icon: BarChart,
+    title: 'Management Login',
+    subtitle: 'Tallawah Executive Overview',
   },
 }
 

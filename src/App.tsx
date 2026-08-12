@@ -3,7 +3,7 @@ import s from './App.module.css'
 import { useTheme } from './lib/useTheme'
 import { startSimulation, startSync, useTallawahStore } from './store/useStore'
 import { startAutoplay, stopAutoplay } from './lib/autoplay'
-import { STAFF_CREDENTIAL, DRIVER_CREDENTIAL } from './lib/auth'
+import { STAFF_CREDENTIAL, DRIVER_CREDENTIAL, MD_CREDENTIAL } from './lib/auth'
 import { ToastProvider } from './components/ui/Toast'
 import { HomeView } from './components/HomeView'
 import { PresentView } from './components/PresentView'
@@ -14,6 +14,7 @@ import { LoginGate } from './components/LoginGate'
 import { FarmerView } from './roles/farmer/FarmerView'
 import { StaffApp } from './roles/staff/StaffApp'
 import { DriverView } from './roles/driver/DriverView'
+import { MDApp } from './roles/md/MDApp'
 
 export default function App() {
   const { theme, toggle } = useTheme()
@@ -23,10 +24,13 @@ export default function App() {
   const resetDemo = useTallawahStore((st) => st.resetDemo)
   const staffAuthed = useTallawahStore((st) => st.staffAuthed)
   const driverAuthed = useTallawahStore((st) => st.driverAuthed)
+  const mdAuthed = useTallawahStore((st) => st.mdAuthed)
   const loginStaff = useTallawahStore((st) => st.loginStaff)
   const loginDriver = useTallawahStore((st) => st.loginDriver)
+  const loginMD = useTallawahStore((st) => st.loginMD)
   const logoutStaff = useTallawahStore((st) => st.logoutStaff)
   const logoutDriver = useTallawahStore((st) => st.logoutDriver)
+  const logoutMD = useTallawahStore((st) => st.logoutMD)
 
   useEffect(() => {
     startSimulation()
@@ -58,6 +62,13 @@ export default function App() {
               <DriverView theme={theme} onToggleTheme={toggle} onSignOut={logoutDriver} />
             ) : (
               <LoginGate role="driver" credential={DRIVER_CREDENTIAL} onSuccess={loginDriver} onBack={() => setView('home')} />
+            ))}
+
+          {view === 'md' &&
+            (mdAuthed ? (
+              <MDApp theme={theme} onToggleTheme={toggle} onSignOut={logoutMD} />
+            ) : (
+              <LoginGate role="md" credential={MD_CREDENTIAL} onSuccess={loginMD} onBack={() => setView('home')} />
             ))}
 
           {view === 'present' && <PresentView theme={theme} onToggleTheme={toggle} />}

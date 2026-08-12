@@ -32,6 +32,11 @@ const STATUS_TONE: Record<string, Tone> = {
   off_duty: 'neutral',
   pass: 'green',
   fail: 'red',
+  approved: 'green',
+  in_review: 'gold',
+  ready: 'green',
+  in_setup: 'gold',
+  not_started: 'neutral',
 }
 
 export function StatusBadge({ status, label }: { status: string; label?: string }) {

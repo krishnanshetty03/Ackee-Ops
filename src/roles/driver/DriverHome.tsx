@@ -1,7 +1,11 @@
+import { useMemo } from 'react'
+import { shallow } from 'zustand/shallow'
 import d from './driver.module.css'
 import { useTallawahStore } from '../../store/useStore'
-import { selectDriverActiveShipment, selectDriverHistory, selectDriverPendingRoute } from '../../store/selectors'
+import { selectDriverActiveShipment, selectDriverHistory, selectDriverPendingRoute, selectDriverPerformanceKpis } from '../../store/selectors'
 import { Button } from '../../components/ui/Button'
+import { Sparkline } from '../../components/charts/Sparkline'
+import { pseudoTrailingSeries } from '../../lib/pseudoSeries'
 import { CheckCircle, ChevronRight, Factory, Sparkles, Truck } from '../../components/icons'
 import { fmtBags, todayIso } from '../../lib/format'
 
@@ -12,6 +16,9 @@ export function DriverHome({ driverId }: { driverId: string }) {
   const pendingRoute = useTallawahStore((st) => selectDriverPendingRoute(st, driverId))
   const activeShipment = useTallawahStore((st) => selectDriverActiveShipment(st, driverId))
   const history = useTallawahStore((st) => selectDriverHistory(st, driverId))
+  const perf = useTallawahStore((st) => selectDriverPerformanceKpis(st, driverId), shallow)
+
+  const weekTrend = useMemo(() => pseudoTrailingSeries(`driver-bags-${driverId}`, 7, perf.weekBags), [driverId, perf.weekBags])
 
   const today = todayIso(now)
   const todaysHistory = history.filter((sh) => sh.closedAt && todayIso(sh.closedAt) === today)
@@ -91,6 +98,47 @@ export function DriverHome({ driverId }: { driverId: string }) {
           <div className={d.statTile}>
             <span className={d.statValue}>{todaysHistory.length}</span>
             <span className={d.statLabel}>Delivered</span>
+          </div>
+        </div>
+      </div>
+
+      <div className={d.routeSummary}>
+        <div className={d.routeSummaryTop}>
+          <span className={d.routeSummaryTitle}>This week</span>
+          <Sparkline values={weekTrend} width={72} height={26} color="var(--green)" />
+        </div>
+        <div className={d.statRow} style={{ marginTop: 10 }}>
+          <div className={d.statTile}>
+            <span className={d.statValue}>{perf.weekStops}</span>
+            <span className={d.statLabel}>Stops</span>
+          </div>
+          <div className={d.statTile}>
+            <span className={d.statValue}>{perf.weekBags}</span>
+            <span className={d.statLabel}>Bags</span>
+          </div>
+          <div className={d.statTile}>
+            <span className={d.statValue}>{perf.qualityPassRate !== null ? `${Math.round(perf.qualityPassRate * 100)}%` : '—'}</span>
+            <span className={d.statLabel}>Quality</span>
+          </div>
+        </div>
+      </div>
+
+      <div className={d.routeSummary}>
+        <div className={d.routeSummaryTop}>
+          <span className={d.routeSummaryTitle}>Lifetime</span>
+        </div>
+        <div className={d.statRow} style={{ marginTop: 10 }}>
+          <div className={d.statTile}>
+            <span className={d.statValue}>{perf.lifetimeBags}</span>
+            <span className={d.statLabel}>Bags collected</span>
+          </div>
+          <div className={d.statTile}>
+            <span className={d.statValue}>{perf.lifetimeStops}</span>
+            <span className={d.statLabel}>Stops done</span>
+          </div>
+          <div className={d.statTile}>
+            <span className={d.statValue}>{perf.avgBagsPerStop}</span>
+            <span className={d.statLabel}>Avg/stop</span>
           </div>
         </div>
       </div>

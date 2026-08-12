@@ -47,7 +47,7 @@ export function farmIcon(state: 'pending' | 'arrived' | 'completed') {
 export function truckIcon(hue: number, bearing: number, moving: boolean, emphasized = false) {
   const outer = emphasized ? 50 : 38
   const core = emphasized ? 38 : 30
-  const glyph = emphasized ? 20 : 16
+  const glyph = emphasized ? 21 : 17
   const ring = emphasized ? `0 0 0 3px #fff, 0 0 0 5.5px #F0C000, 0 5px 14px rgba(0,0,0,.4)` : `0 3px 8px rgba(0,0,0,.35)`
   return L.divIcon({
     className: '',
@@ -59,9 +59,12 @@ export function truckIcon(hue: number, bearing: number, moving: boolean, emphasi
             ? `<div style="position:absolute;top:-3px;right:-1px;width:11px;height:11px;border-radius:50%;background:#e0303a;border:2px solid #fff;z-index:2;animation:mappulse 1.6s ease-out infinite;box-shadow:0 1px 3px rgba(0,0,0,.4);"></div>`
             : ''
         }
-        <div style="width:${core}px;height:${core}px;border-radius:50%;background:linear-gradient(155deg,hsl(${hue} 62% 60%),hsl(${hue} 58% 42%));border:2px solid var(--surface);box-shadow:${ring};display:flex;align-items:center;justify-content:center;transform:rotate(${bearing}deg);transition:transform .5s ease;">
-          <svg width="${glyph}" height="${glyph}" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transform:rotate(${-bearing}deg);">
-            <path d="M12 2.5 4.5 20l7.5-4 7.5 4Z"/>
+        <div style="width:${core}px;height:${core}px;border-radius:50%;background:linear-gradient(155deg,hsl(${hue} 62% 60%),hsl(${hue} 58% 42%));border:2px solid var(--surface);box-shadow:${ring};display:flex;align-items:center;justify-content:center;">
+          <svg width="${glyph}" height="${glyph}" viewBox="0 0 24 24" style="transform:rotate(${bearing}deg);transition:transform .5s ease;">
+            <rect x="5.8" y="3" width="12.4" height="17.5" rx="5" fill="#fff"/>
+            <rect x="7.5" y="5.2" width="9" height="4.6" rx="2" fill="#000" fill-opacity=".28"/>
+            <circle cx="6.4" cy="8.6" r="1.15" fill="#fff"/>
+            <circle cx="17.6" cy="8.6" r="1.15" fill="#fff"/>
           </svg>
         </div>
       </div>`,

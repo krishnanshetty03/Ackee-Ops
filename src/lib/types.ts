@@ -267,9 +267,46 @@ export const FARMER_TAG_OPTIONS = ['Preferred Supplier', 'High Volume', 'Reliabl
  *  days marks a farmer as "going quiet" on the CRM and the Overview dashboard */
 export const FARMER_QUIET_DAYS = 3
 
+// ---------------- MD / Management Overview ----------------
+// Static reference data (no interactive editing in this demo) for the parts of
+// the business the operational app doesn't model: export compliance and the
+// separate online store. Kept out of the Zustand store since nothing here
+// changes at runtime — plain imported constants, same as FARM_COMMUNITIES.
+
+export type ClearanceStatus = 'approved' | 'in_review' | 'pending'
+
+export interface ExportClearance {
+  id: string
+  market: string
+  authority: string
+  status: ClearanceStatus
+  updatedAt: string // ISO date
+  note: string
+}
+
+export type WarehouseStatus = 'ready' | 'in_setup' | 'not_started'
+
+export interface WarehouseSite {
+  id: string
+  country: string
+  city: string
+  status: WarehouseStatus
+  capacityTons: number
+  targetDate?: string // ISO date — only set while not yet ready
+}
+
+export interface OnlineStoreSnapshot {
+  revenueMtdUsd: number
+  revenueLastMonthUsd: number
+  ordersMtd: number
+  ordersLastMonth: number
+  avgOrderValueUsd: number
+  topMarket: string
+}
+
 // ---------------- UI-only ephemeral state ----------------
 
-export type AppView = 'home' | 'farmer' | 'staff' | 'driver' | 'present'
+export type AppView = 'home' | 'farmer' | 'staff' | 'driver' | 'md' | 'present'
 export type StaffTab = 'overview' | 'intake' | 'dispatch' | 'tracking' | 'receiving' | 'exceptions' | 'farmers'
 export type DriverTab = 'home' | 'route' | 'history' | 'profile'
 

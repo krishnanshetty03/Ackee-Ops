@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import s from '../App.module.css'
-import { Grid, Leaf, ChevronRight, Truck, RefreshCw } from './icons'
+import { BarChart, Grid, Leaf, ChevronRight, Truck, RefreshCw } from './icons'
 import { ThemeToggle } from './ui/ThemeToggle'
 import { ConfirmDialog } from './ui/Sheet'
 import type { AppView } from '../lib/types'
@@ -11,12 +11,14 @@ const TONE = {
   gold: { ['--tint' as string]: 'var(--gold-soft)', ['--tintColor' as string]: 'var(--gold-ink)' },
   green: { ['--tint' as string]: 'var(--green-soft)', ['--tintColor' as string]: 'var(--green-ink)' },
   earth: { ['--tint' as string]: 'var(--earth-soft)', ['--tintColor' as string]: 'var(--earth)' },
+  neutral: { ['--tint' as string]: 'var(--surface-3)', ['--tintColor' as string]: 'var(--text)' },
 } satisfies Record<string, CSSProperties>
 
 const ROLES = [
   { num: '01', view: 'farmer' as AppView, icon: Leaf, title: 'Farmer', desc: 'WhatsApp channel — bags, pickup or self-drop, farm location.', tone: TONE.green },
   { num: '02', view: 'staff' as AppView, icon: Grid, title: 'Staff', desc: 'Ops dashboard — intake, dispatch, tracking, receiving, exceptions.', tone: TONE.gold },
   { num: '03', view: 'driver' as AppView, icon: Truck, title: 'Driver', desc: 'Field app — today’s route, stop by stop, bags collected.', tone: TONE.earth },
+  { num: '04', view: 'md' as AppView, icon: BarChart, title: 'Management', desc: 'Executive overview — intake, capacity, exports, revenue.', tone: TONE.neutral },
 ]
 
 export function HomeView({

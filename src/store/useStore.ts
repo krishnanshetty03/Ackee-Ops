@@ -89,6 +89,7 @@ interface UISlice {
   focusShipmentId: string | null
   staffAuthed: boolean
   driverAuthed: boolean
+  mdAuthed: boolean
 }
 
 function msg(farmerId: string, partial: Omit<ChatMessage, 'id' | 'farmerId' | 'createdAt'>): ChatMessage {
@@ -172,8 +173,10 @@ type Actions = {
   // ---- demo auth (local-only; no backend) ----
   loginStaff: () => void
   loginDriver: () => void
+  loginMD: () => void
   logoutStaff: () => void
   logoutDriver: () => void
+  logoutMD: () => void
 
   // ---- lifecycle ----
   tick: () => void
@@ -224,6 +227,7 @@ function initialUI(): UISlice {
     focusShipmentId: 'SHP-041',
     staffAuthed: false,
     driverAuthed: false,
+    mdAuthed: false,
   }
 }
 
@@ -758,8 +762,10 @@ export const useTallawahStore = create<Store>((set, get) => ({
   // ================= DEMO AUTH =================
   loginStaff: () => set({ staffAuthed: true }),
   loginDriver: () => set({ driverAuthed: true }),
+  loginMD: () => set({ mdAuthed: true }),
   logoutStaff: () => set({ staffAuthed: false }),
   logoutDriver: () => set({ driverAuthed: false }),
+  logoutMD: () => set({ mdAuthed: false }),
 
   // ================= LIFECYCLE =================
   tick: () =>

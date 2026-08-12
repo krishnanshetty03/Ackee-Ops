@@ -4,15 +4,18 @@ import type {
   Branch,
   Driver,
   ExceptionItem,
+  ExportClearance,
   Farmer,
   FarmerNote,
   FarmerRequest,
   FollowUpTask,
+  OnlineStoreSnapshot,
   Route,
   Shipment,
   StaffMember,
   StockEntry,
   Vehicle,
+  WarehouseSite,
 } from './types'
 
 export const STAFF_USER: StaffMember = {
@@ -48,12 +51,36 @@ export const VEHICLES: Vehicle[] = [
 ]
 
 export const DRIVERS: Driver[] = [
-  { id: 'DR-1', name: 'Kojo Mensah', phone: '+233 24 552 8871', vehicleId: 'VH-1', status: 'available', avatarHue: 18, initials: 'KM', homeLocation: { lat: FACTORY.lat + 0.01, lng: FACTORY.lng - 0.01 } },
-  { id: 'DR-2', name: 'Yaw Boakye', phone: '+233 27 340 9012', vehicleId: 'VH-2', status: 'available', avatarHue: 265, initials: 'YB', homeLocation: { lat: FACTORY.lat - 0.008, lng: FACTORY.lng + 0.012 } },
-  { id: 'DR-3', name: 'Nana Adusei', phone: '+233 20 118 7742', vehicleId: 'VH-3', status: 'available', avatarHue: 95, initials: 'NA', homeLocation: { lat: FACTORY.lat + 0.006, lng: FACTORY.lng + 0.009 } },
+  { id: 'DR-1', name: 'Kojo Mensah', phone: '+233 24 552 8871', vehicleId: 'VH-1', status: 'on_route', avatarHue: 18, initials: 'KM', homeLocation: { lat: FACTORY.lat + 0.01, lng: FACTORY.lng - 0.01 } },
+  { id: 'DR-2', name: 'Yaw Boakye', phone: '+233 27 340 9012', vehicleId: 'VH-2', status: 'on_route', avatarHue: 265, initials: 'YB', homeLocation: { lat: FACTORY.lat - 0.008, lng: FACTORY.lng + 0.012 } },
+  { id: 'DR-3', name: 'Nana Adusei', phone: '+233 20 118 7742', vehicleId: 'VH-3', status: 'on_route', avatarHue: 95, initials: 'NA', homeLocation: { lat: FACTORY.lat + 0.006, lng: FACTORY.lng + 0.009 } },
   { id: 'DR-4', name: 'Comfort Appiah', phone: '+233 55 887 2201', vehicleId: 'VH-4', status: 'available', avatarHue: 322, initials: 'CA', homeLocation: { lat: FACTORY.lat - 0.012, lng: FACTORY.lng - 0.006 } },
   { id: 'DR-5', name: 'Isaac Frimpong', phone: '+233 24 003 6612', vehicleId: 'VH-5', status: 'off_duty', avatarHue: 48, initials: 'IF', homeLocation: { lat: FACTORY.lat + 0.014, lng: FACTORY.lng + 0.002 } },
 ]
+
+// Export compliance + the separate online store — not modeled anywhere else in
+// the app, so this is the MD dashboard's own reference data (dates are relative
+// to seed load time below, same convention as the rest of this file).
+export const EXPORT_CLEARANCES: ExportClearance[] = [
+  { id: 'CLR-US', market: 'United States', authority: 'FDA (equivalent)', status: 'approved', updatedAt: '2026-06-02', note: 'Facility registration renewed; canned and frozen SKUs cleared.' },
+  { id: 'CLR-UK', market: 'United Kingdom', authority: 'FSA (equivalent)', status: 'in_review', updatedAt: '2026-07-18', note: 'Awaiting a final audit date from the inspecting authority.' },
+  { id: 'CLR-CA', market: 'Canada', authority: 'CFIA (equivalent)', status: 'pending', updatedAt: '2026-05-20', note: 'Application submitted; documentation review in progress.' },
+]
+
+export const WAREHOUSES: WarehouseSite[] = [
+  { id: 'WH-UK', country: 'United Kingdom', city: 'London (Tilbury)', status: 'ready', capacityTons: 40 },
+  { id: 'WH-US', country: 'United States', city: 'Newark, NJ', status: 'in_setup', capacityTons: 60, targetDate: '2026-10-01' },
+  { id: 'WH-CA', country: 'Canada', city: 'Toronto', status: 'not_started', capacityTons: 25, targetDate: '2027-01-15' },
+]
+
+export const ONLINE_STORE: OnlineStoreSnapshot = {
+  revenueMtdUsd: 18450,
+  revenueLastMonthUsd: 15200,
+  ordersMtd: 612,
+  ordersLastMonth: 498,
+  avgOrderValueUsd: 30.15,
+  topMarket: 'United Kingdom',
+}
 
 function communityFor(name: string) {
   return FARM_COMMUNITIES.find((c) => c.community === name) ?? FARM_COMMUNITIES[0]
@@ -139,8 +166,22 @@ export function buildSeed() {
       estimatedBags: 27,
       requestType: 'staff_pickup',
       branchId: 'BR-01',
-      status: 'unassigned',
+      status: 'assigned',
       createdAt: T0 - 55 * MIN,
+      routeId: 'RT-043',
+    },
+    {
+      id: 'REQ-147',
+      farmerId: 'FM-01',
+      farmerName: 'Kwame Owusu',
+      farmerPhone: FARMERS[0].phone,
+      location: locationFor(FARMERS[0], ''),
+      estimatedBags: 16,
+      requestType: 'staff_pickup',
+      branchId: 'BR-01',
+      status: 'assigned',
+      createdAt: T0 - 2 * HOUR,
+      routeId: 'RT-042',
     },
     {
       id: 'REQ-146',
@@ -180,10 +221,34 @@ export function buildSeed() {
       createdAt: T0 - 3 * HOUR,
       dispatchedAt: T0 - 40 * MIN,
     },
+    {
+      id: 'RT-042',
+      requestIds: ['REQ-147'],
+      vehicleId: 'VH-3',
+      driverId: 'DR-3',
+      scheduledDate: todayIso(T0),
+      totalEstimatedBags: 16,
+      status: 'dispatched',
+      createdAt: T0 - 2.1 * HOUR,
+      dispatchedAt: T0 - 72 * MIN,
+    },
+    {
+      id: 'RT-043',
+      requestIds: ['REQ-145'],
+      vehicleId: 'VH-1',
+      driverId: 'DR-1',
+      scheduledDate: todayIso(T0),
+      totalEstimatedBags: 27,
+      status: 'dispatched',
+      createdAt: T0 - 50 * MIN,
+      dispatchedAt: T0 - 20 * MIN,
+    },
   ]
 
   const req142 = requests.find((r) => r.id === 'REQ-142')!
   const req143 = requests.find((r) => r.id === 'REQ-143')!
+  const req145 = requests.find((r) => r.id === 'REQ-145')!
+  const req147 = requests.find((r) => r.id === 'REQ-147')!
 
   const shipments: Shipment[] = [
     {
@@ -213,6 +278,52 @@ export function buildSeed() {
           farmerName: 'Yaw Darko',
           location: req143.location,
           estimatedBags: 18,
+          status: 'pending',
+        },
+      ],
+    },
+    {
+      id: 'SHP-042',
+      routeId: 'RT-042',
+      driverId: 'DR-3',
+      vehicleId: 'VH-3',
+      status: 'active',
+      startedAt: T0 - 72 * MIN,
+      position: jitter({ lat: (FACTORY.lat + req147.location.lat) / 2, lng: (FACTORY.lng + req147.location.lng) / 2 }, 1),
+      legIndex: 0,
+      legProgress: 0.35,
+      legStartedAt: T0 - 0.35 * 19000,
+      legDurationMs: 19000,
+      stops: [
+        {
+          requestId: 'REQ-147',
+          farmerId: 'FM-01',
+          farmerName: 'Kwame Owusu',
+          location: req147.location,
+          estimatedBags: 16,
+          status: 'pending',
+        },
+      ],
+    },
+    {
+      id: 'SHP-043',
+      routeId: 'RT-043',
+      driverId: 'DR-1',
+      vehicleId: 'VH-1',
+      status: 'active',
+      startedAt: T0 - 20 * MIN,
+      position: jitter({ lat: (FACTORY.lat + req145.location.lat) / 2, lng: (FACTORY.lng + req145.location.lng) / 2 }, 1),
+      legIndex: 0,
+      legProgress: 0.7,
+      legStartedAt: T0 - 0.7 * 15000,
+      legDurationMs: 15000,
+      stops: [
+        {
+          requestId: 'REQ-145',
+          farmerId: 'FM-04',
+          farmerName: 'Akosua Mensah',
+          location: req145.location,
+          estimatedBags: 27,
           status: 'pending',
         },
       ],
