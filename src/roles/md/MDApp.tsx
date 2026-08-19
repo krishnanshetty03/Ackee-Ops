@@ -98,34 +98,38 @@ function WhatsAppCampaignPanel() {
       />
       <div className={m.broadcastForm}>
         <div className={m.broadcastRow}>
-          <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>Target Audience:</label>
-          <select className={m.broadcastTargetSelect} value={target} onChange={(e) => setTarget(e.target.value)}>
-            <option value="nd">Farmers flagged ND (Needs Delivery / Notes)</option>
-            <option value="all">All Farmers ({farmers.length})</option>
-            <option value="preferred">Preferred Suppliers</option>
-            <option value="high_volume">High Volume Suppliers</option>
-            <option value="Ejisu">Ejisu Community</option>
-            <option value="Bekwai">Bekwai Community</option>
-            <option value="Mampong">Mampong Community</option>
-          </select>
+          <div className={m.broadcastField}>
+            <label className={m.broadcastLabel}>Target Audience</label>
+            <select className={m.broadcastTargetSelect} value={target} onChange={(e) => setTarget(e.target.value)}>
+              <option value="nd">Farmers flagged ND (Needs Delivery / Notes)</option>
+              <option value="all">All Farmers ({farmers.length})</option>
+              <option value="preferred">Preferred Suppliers</option>
+              <option value="high_volume">High Volume Suppliers</option>
+              <option value="Ejisu">Ejisu Community</option>
+              <option value="Bekwai">Bekwai Community</option>
+              <option value="Mampong">Mampong Community</option>
+            </select>
+          </div>
 
-          <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', marginLeft: 12 }}>Bonus Payout Boost:</label>
-          <select
-            className={m.broadcastTargetSelect}
-            value={bonusPct}
-            onChange={(e) => {
-              const pct = parseInt(e.target.value, 10)
-              setBonusPct(pct)
-              setCustomText(
-                `🎁 *SPECIAL ${pct}% HARVEST BONUS THIS WEEK!*\n\nTallawah Foods Ghana is paying an extra ${pct}% cash bonus on all ackee orders placed this week.\n\nTap below to place your order directly on WhatsApp and lock in your ${pct}% payout boost!`,
-              )
-            }}
-          >
-            <option value={10}>10% Bonus (This Week Campaign)</option>
-            <option value={15}>15% Bonus (Peak Season)</option>
-            <option value={20}>20% High-Volume Bonus</option>
-            <option value={5}>5% Standard Incentive</option>
-          </select>
+          <div className={m.broadcastField}>
+            <label className={m.broadcastLabel}>Bonus Payout Boost</label>
+            <select
+              className={m.broadcastTargetSelect}
+              value={bonusPct}
+              onChange={(e) => {
+                const pct = parseInt(e.target.value, 10)
+                setBonusPct(pct)
+                setCustomText(
+                  `🎁 *SPECIAL ${pct}% HARVEST BONUS THIS WEEK!*\n\nTallawah Foods Ghana is paying an extra ${pct}% cash bonus on all ackee orders placed this week.\n\nTap below to place your order directly on WhatsApp and lock in your ${pct}% payout boost!`,
+                )
+              }}
+            >
+              <option value={10}>10% Bonus (This Week Campaign)</option>
+              <option value={15}>15% Bonus (Peak Season)</option>
+              <option value={20}>20% High-Volume Bonus</option>
+              <option value={5}>5% Standard Incentive</option>
+            </select>
+          </div>
         </div>
 
         <div>

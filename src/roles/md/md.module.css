@@ -111,20 +111,29 @@
 .span3 {
   grid-column: span 3;
 }
+.span6 {
+  grid-column: span 6;
+}
 
 @media (max-width: 1020px) {
   .dashGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .span2,
-  .span3 {
-    grid-column: span 1;
+  .span3,
+  .span6 {
+    grid-column: span 2;
   }
 }
 
 @media (max-width: 640px) {
   .dashGrid {
     grid-template-columns: minmax(0, 1fr);
+  }
+  .span2,
+  .span3,
+  .span6 {
+    grid-column: span 1;
   }
 }
 
@@ -294,18 +303,32 @@
 .broadcastForm {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
+  padding-top: 4px;
 }
 
 .broadcastRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  align-items: flex-end;
+}
+
+.broadcastField {
   display: flex;
-  gap: 12px;
-  align-items: center;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.broadcastLabel {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
 }
 
 .broadcastTargetSelect {
-  padding: 8px 12px;
+  width: 100%;
+  padding: 9px 12px;
   border-radius: 8px;
   border: 1px solid var(--border);
   background: var(--surface);
@@ -314,12 +337,13 @@
   font-family: inherit;
   outline: none;
   cursor: pointer;
+  box-sizing: border-box;
 }
 
 .broadcastTextArea {
   width: 100%;
-  min-height: 85px;
-  padding: 10px 12px;
+  min-height: 80px;
+  padding: 10px 14px;
   border-radius: 8px;
   border: 1px solid var(--border);
   background: var(--surface);
@@ -335,16 +359,17 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 16px;
   flex-wrap: wrap;
-  padding-top: 6px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
 }
 
 .broadcastSendBtn {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 9px 18px;
+  padding: 10px 20px;
   border-radius: 8px;
   background: #128c7e;
   color: #fff;
@@ -369,8 +394,8 @@
   font-size: 12px;
   font-weight: 600;
   color: #128c7e;
-  background: rgba(18, 140, 126, 0.1);
-  padding: 4px 10px;
+  background: rgba(18, 140, 126, 0.12);
+  padding: 4px 12px;
   border-radius: 20px;
 }
 
