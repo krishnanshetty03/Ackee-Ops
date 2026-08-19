@@ -1,0 +1,339 @@
+/* ---------------- shared: farmer cell + tags ---------------- */
+.farmerCell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.farmerCellText {
+  min-width: 0;
+}
+
+.tagRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.tagChip {
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2.5px 8px;
+  border-radius: var(--r-pill);
+  background: var(--gold-soft);
+  color: var(--gold-ink);
+  border: 1px solid color-mix(in srgb, var(--gold) 25%, transparent);
+  white-space: nowrap;
+}
+
+/* ---------------- directory ---------------- */
+.summaryRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+/* ---------------- profile ---------------- */
+.profileBack {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+.profileBack:hover {
+  color: var(--text);
+}
+
+.profileHead {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.profileIdentity {
+  flex: 1;
+  min-width: 240px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.profileNameRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.profileName {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 600;
+}
+.profileMeta {
+  font-size: 12.5px;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.profileMeta b {
+  color: var(--text-2);
+  font-weight: 600;
+}
+
+.tagEditorWrap {
+  position: relative;
+  display: inline-flex;
+}
+.addTagBtn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2.5px 9px 2.5px 7px;
+  border-radius: var(--r-pill);
+  border: 1px dashed var(--border-strong);
+  color: var(--muted);
+}
+.addTagBtn:hover {
+  color: var(--text);
+  border-color: var(--text-2);
+}
+.tagMenu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 40;
+  width: 200px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-lg);
+  padding: 6px;
+}
+.tagMenuItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 8px;
+  border-radius: var(--r-sm);
+  font-size: 12.5px;
+  color: var(--text);
+}
+.tagMenuItem:hover {
+  background: var(--surface-3);
+}
+.tagMenuCheck {
+  width: 15px;
+  height: 15px;
+  border-radius: 4px;
+  border: 1.5px solid var(--border-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  color: transparent;
+}
+.tagMenuCheck.on {
+  background: var(--brand-black);
+  border-color: var(--brand-black);
+  color: var(--gold-fill);
+}
+
+.profileActions {
+  display: flex;
+  gap: 8px;
+  flex: none;
+}
+
+.statTiles {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+}
+@media (max-width: 720px) {
+  .statTiles {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+.statTile {
+  padding: 14px 12px;
+  text-align: center;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+.statTile:nth-child(4n) {
+  border-right: none;
+}
+.statTileValue {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 600;
+}
+.statTileLabel {
+  font-size: 10.5px;
+  color: var(--muted);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  margin-top: 3px;
+}
+
+.profileBody {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .profileBody {
+    grid-template-columns: 1fr;
+  }
+}
+
+.col {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+/* notes */
+.noteItem {
+  padding: 11px 0;
+  border-bottom: 1px solid var(--line);
+}
+.noteItem:last-child {
+  border-bottom: none;
+}
+.noteText {
+  font-size: 12.8px;
+  line-height: 1.55;
+  color: var(--text);
+}
+.noteMeta {
+  font-size: 11px;
+  color: var(--faint);
+  margin-top: 4px;
+}
+.noteForm {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+  margin-top: 10px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+.noteForm textarea {
+  flex: 1;
+}
+
+/* follow-ups */
+.taskItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--line);
+}
+.taskItem:last-child {
+  border-bottom: none;
+}
+.taskCheck {
+  width: 19px;
+  height: 19px;
+  border-radius: 50%;
+  border: 1.6px solid var(--border-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  margin-top: 1px;
+  color: transparent;
+}
+.taskCheck.done {
+  background: var(--green);
+  border-color: var(--green);
+  color: #fff;
+}
+.taskText {
+  flex: 1;
+  min-width: 0;
+  font-size: 12.8px;
+}
+.taskText.done {
+  color: var(--faint);
+  text-decoration: line-through;
+}
+.taskDue {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.taskDue.overdue {
+  color: var(--red-ink);
+  font-weight: 700;
+}
+.taskForm {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+.taskFormRow {
+  display: flex;
+  gap: 8px;
+}
+.taskFormRow input[type='date'] {
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-sm);
+  padding: 8px 10px;
+  font-size: 12.5px;
+  color: var(--text);
+  background: var(--surface);
+  flex: none;
+  width: 150px;
+}
+
+/* whatsapp preview */
+.waPreview {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.waRow {
+  display: flex;
+}
+.waRowOut {
+  justify-content: flex-end;
+}
+.waBubble {
+  max-width: 82%;
+  font-size: 12px;
+  line-height: 1.4;
+  padding: 7px 10px;
+  border-radius: 9px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+}
+.waRowOut .waBubble {
+  background: var(--green-soft);
+  color: var(--green-ink);
+}
+
+.mapCard {
+  height: 150px;
+  border-radius: var(--r);
+  overflow: hidden;
+  border: 1px solid var(--border);
+}

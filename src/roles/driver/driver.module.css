@@ -1,0 +1,544 @@
+.screen {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.header {
+  flex: none;
+  background: var(--brand-black);
+  color: #f4eee0;
+  padding: 14px 16px 18px;
+  position: relative;
+  overflow: hidden;
+}
+.header::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--kente);
+  opacity: 0.9;
+  height: 4px;
+  top: auto;
+  bottom: 0;
+}
+
+.headerTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.greeting {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
+}
+.greetingHi {
+  font-size: 11px;
+  color: #b8ac8e;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.greetingName {
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bellBtn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #f4eee0;
+  background: rgba(255, 255, 255, 0.08);
+  position: relative;
+}
+.bellDot {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--gold-fill);
+  border: 1.5px solid var(--brand-black);
+}
+
+.vehicleChip {
+  margin-top: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--r-pill);
+  padding: 5px 11px 5px 6px;
+  font-size: 11.5px;
+  color: #e7dfc9;
+}
+.vehicleChipDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+}
+.vehicleChipDot.busy {
+  background: var(--gold-fill);
+}
+
+.body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 15px 15px 90px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ---------------- notification banner ---------------- */
+.banner {
+  border-radius: var(--r-lg);
+  padding: 15px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+  overflow: hidden;
+  border: 1.5px solid transparent;
+}
+.banner.job {
+  background: linear-gradient(150deg, #fff3c2, var(--gold-soft));
+  border-color: color-mix(in srgb, var(--gold) 45%, transparent);
+}
+:root[data-theme='dark'] .banner.job {
+  background: linear-gradient(150deg, #3a2f0e, #241c07);
+}
+.banner.active {
+  background: var(--green-soft);
+  border-color: color-mix(in srgb, var(--green) 40%, transparent);
+}
+.bannerLabel {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--gold-ink);
+}
+.banner.active .bannerLabel {
+  color: var(--green-ink);
+}
+.bannerTitle {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text);
+}
+.bannerDesc {
+  font-size: 12.5px;
+  color: var(--text-2);
+}
+.bannerFoot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 4px;
+}
+
+.idleCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  padding: 34px 20px;
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+.idleIcon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--green-soft);
+  color: var(--green-ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+
+.statRow {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 9px;
+}
+.statTile {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 11px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.statValue {
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 600;
+}
+.statLabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+.sectionLabel {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 2px 2px 0;
+}
+
+/* ---------------- route / stop list ---------------- */
+.routeSummary {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 14px 15px;
+}
+.routeSummaryTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+/* the driver's headline card — how much room is left on the truck decides
+   whether the next stop can even be picked up, so it outranks the tallies */
+.capacityCard {
+  background: var(--surface);
+  border: 1.5px solid var(--gold);
+  box-shadow: 0 0 0 3px var(--gold-soft);
+  border-radius: var(--r-lg);
+  padding: 15px;
+}
+
+.capacityPlate {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-2);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-pill);
+  padding: 2px 8px;
+  white-space: nowrap;
+}
+
+.locDistance {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--gold-ink);
+  white-space: nowrap;
+}
+
+.locName {
+  font-size: 13.5px;
+  font-weight: 700;
+  margin-top: 10px;
+}
+.locMeta {
+  font-size: 11.5px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.routeSummaryTitle {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 15.5px;
+}
+.progressTrack {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--surface-inset);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  margin-top: 10px;
+}
+.progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--green), #2fae55);
+  border-radius: 3px;
+  transition: width 0.4s var(--ease);
+}
+
+.stopList {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.stopCard {
+  display: flex;
+  gap: 11px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 13px 14px;
+}
+.stopCard.currentStop {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px var(--gold-soft);
+}
+.stopCard.doneStop {
+  opacity: 0.68;
+}
+
+.stopBadge {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  font-weight: 700;
+  font-size: 12.5px;
+  background: var(--surface-3);
+  color: var(--text-2);
+}
+.stopBadge.done {
+  background: var(--green);
+  color: #fff;
+}
+.stopBadge.current {
+  background: var(--gold-fill);
+  color: #241a02;
+}
+
+.stopBody {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.stopName {
+  font-weight: 700;
+  font-size: 13.5px;
+}
+.stopMeta {
+  font-size: 11.5px;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.stopActions {
+  display: flex;
+  gap: 8px;
+  margin-top: 3px;
+}
+
+.stopMapWrap {
+  margin-top: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  overflow: hidden;
+}
+
+.bagEntry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: var(--surface-2);
+  border-radius: var(--r-sm);
+  padding: 9px 10px;
+  margin-top: 2px;
+}
+.bagEntryLabel {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--text-2);
+}
+
+.assessBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.ctaFooter {
+  position: sticky;
+  bottom: 0;
+  padding: 12px 4px 2px;
+  background: linear-gradient(180deg, transparent, var(--bg) 30%);
+}
+
+/* ---------------- history ---------------- */
+.historyItem {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 11px 13px;
+}
+.historyIcon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--green-soft);
+  color: var(--green-ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+.historyText {
+  flex: 1;
+  min-width: 0;
+}
+.historyTitle {
+  font-size: 12.5px;
+  font-weight: 700;
+}
+.historyMeta {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+/* ---------------- profile ---------------- */
+.profileHead {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 0 4px;
+  text-align: center;
+}
+.profileName {
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 600;
+}
+.profileMeta {
+  font-size: 12px;
+  color: var(--muted);
+}
+.profileList {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+}
+.profileRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 15px;
+  border-bottom: 1px solid var(--line);
+  font-size: 12.8px;
+}
+.profileRow:last-child {
+  border-bottom: none;
+}
+.profileRowLabel {
+  color: var(--muted);
+}
+.profileRowValue {
+  font-weight: 700;
+}
+
+.statusSwitch {
+  display: flex;
+  background: var(--surface-inset);
+  border: 1px solid var(--border);
+  border-radius: var(--r-pill);
+  padding: 3px;
+  gap: 2px;
+}
+.statusOpt {
+  padding: 6px 12px;
+  border-radius: var(--r-pill);
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--muted);
+}
+.statusOpt.on {
+  background: var(--green);
+  color: #fff;
+}
+.statusOpt.off {
+  background: var(--surface-3);
+  color: var(--text-2);
+}
+
+/* ---------------- bottom nav ---------------- */
+.bottomNav {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  background: color-mix(in srgb, var(--surface) 96%, transparent);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid var(--border);
+  padding: 8px 6px calc(env(safe-area-inset-bottom, 6px) + 6px);
+  z-index: 20;
+}
+.navBtn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 5px 2px;
+  color: var(--faint);
+  position: relative;
+}
+.navBtn.active {
+  color: var(--gold-ink);
+}
+:root[data-theme='dark'] .navBtn.active {
+  color: var(--gold-fill);
+}
+.navBtnLabel {
+  font-size: 9.5px;
+  font-weight: 700;
+}
+.navDot {
+  position: absolute;
+  top: 2px;
+  right: 24%;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--red);
+}

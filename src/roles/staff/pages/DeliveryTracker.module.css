@@ -1,0 +1,179 @@
+.card {
+  background: var(--surface);
+  border: 1.5px solid var(--gold);
+  border-radius: var(--r-lg);
+  padding: 16px 17px 18px;
+  box-shadow: 0 0 0 3px var(--gold-soft), var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.avatarWrap {
+  position: relative;
+  flex: none;
+}
+.liveDot {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: #e0303a;
+  border: 2px solid var(--surface);
+}
+
+.name {
+  font-size: 14px;
+  font-weight: 700;
+}
+.meta {
+  font-size: 11.5px;
+  color: var(--muted);
+}
+
+.actions {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+}
+.actionBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--border-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-2);
+  flex: none;
+}
+.actionBtn:hover {
+  background: var(--surface-3);
+}
+
+.etaBanner {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  background: var(--gold-soft);
+  border-radius: var(--r);
+  padding: 10px 12px;
+}
+.etaIcon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--brand-black);
+  color: var(--gold-fill);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+.etaText {
+  min-width: 0;
+}
+.etaValue {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--gold-ink);
+}
+.etaLabel {
+  font-size: 11px;
+  color: var(--text-2);
+}
+
+/* stage stepper */
+.stepper {
+  display: flex;
+  align-items: center;
+  padding: 0 2px;
+}
+.stepDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--surface-inset);
+  border: 2px solid var(--border-strong);
+  flex: none;
+  position: relative;
+  z-index: 1;
+}
+.stepDot.done {
+  background: var(--green);
+  border-color: var(--green);
+}
+.stepDot.current {
+  background: var(--gold-fill);
+  border-color: var(--gold-fill);
+  box-shadow: 0 0 0 4px var(--gold-soft);
+}
+.stepSeg {
+  flex: 1;
+  height: 3px;
+  background: var(--surface-inset);
+  position: relative;
+  overflow: hidden;
+  border-radius: 2px;
+}
+.stepSegFill {
+  position: absolute;
+  inset: 0;
+  background: var(--green);
+  transform-origin: left;
+  border-radius: 2px;
+}
+
+.stepLabels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  font-size: 10px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.statRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text-2);
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+.statRow b {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.followRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.followBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 5px 10px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--border-strong);
+  color: var(--text-2);
+}
+.followBtn.on {
+  background: var(--brand-black);
+  color: var(--gold-fill);
+  border-color: var(--brand-black);
+}

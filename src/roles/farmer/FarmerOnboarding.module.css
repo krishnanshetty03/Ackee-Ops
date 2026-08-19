@@ -1,0 +1,276 @@
+/* Farmer onboarding — 4-step WhatsApp-styled flow */
+.screen {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--wa-bg, #ece5dd);
+  font-family: inherit;
+  overflow: hidden;
+}
+
+/* ---- header (mirrors FarmerApp) ---- */
+.header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--wa-header, #128c7e);
+  color: #fff;
+  min-height: 58px;
+  flex-shrink: 0;
+  z-index: 2;
+}
+
+.headerAvatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.headerAvatar img { width: 100%; height: 100%; object-fit: contain; }
+
+.headerInfo { flex: 1; min-width: 0; }
+.headerName { font-size: 15px; font-weight: 700; display: block; }
+.headerSub  { font-size: 11.5px; opacity: 0.85; display: block; }
+
+/* ---- scroll area ---- */
+.scroll {
+  flex: 1;
+  overflow-y: auto;
+  position: relative;
+  padding: 12px 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.wallpaper {
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.025'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ---- day chip ---- */
+.dayChip {
+  position: relative;
+  z-index: 1;
+  align-self: center;
+  background: rgba(255,255,255,0.85);
+  border-radius: 8px;
+  padding: 3px 10px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #5a5a5a;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+/* ---- bubble helpers ---- */
+.row {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  max-width: 80%;
+}
+.rowIn { align-self: flex-start; }
+.rowOut { align-self: flex-end; }
+
+.bubble {
+  padding: 8px 12px;
+  border-radius: 12px;
+  font-size: 13.5px;
+  line-height: 1.45;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.12);
+}
+.bubbleIn {
+  background: #fff;
+  color: #1a1a1a;
+  border-top-left-radius: 3px;
+}
+.bubbleOut {
+  background: #dcf8c6;
+  color: #1a1a1a;
+  border-top-right-radius: 3px;
+}
+
+/* ---- step card (incoming bubble with structured content) ---- */
+.stepCard {
+  background: #fff;
+  border-radius: 12px;
+  border-top-left-radius: 3px;
+  padding: 14px 14px 12px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.12);
+  align-self: flex-start;
+  max-width: 90%;
+  position: relative;
+  z-index: 1;
+}
+
+.stepTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 4px;
+}
+
+.stepDesc {
+  font-size: 12.5px;
+  color: #555;
+  line-height: 1.45;
+  margin-bottom: 12px;
+}
+
+.stepInviteDetail {
+  background: #f5f5f5;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  font-size: 12.5px;
+  color: #333;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.stepInviteDetail strong { color: #1a1a1a; font-weight: 700; }
+
+.stepInput {
+  width: 100%;
+  border: 1.5px solid #ddd;
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-size: 13.5px;
+  background: #fafafa;
+  color: #1a1a1a;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s;
+  margin-bottom: 10px;
+  font-family: inherit;
+}
+.stepInput:focus { border-color: #128c7e; background: #fff; }
+
+/* ---- quick-reply chips ---- */
+.chipsWrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 2px;
+}
+
+.chip {
+  padding: 6px 13px;
+  border-radius: 20px;
+  border: 1.5px solid #128c7e;
+  background: #fff;
+  color: #128c7e;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+  font-family: inherit;
+}
+.chip:hover { background: #128c7e; color: #fff; }
+.chip.selected { background: #128c7e; color: #fff; }
+
+/* ---- action button (green, full-width) ---- */
+.actionBtn {
+  width: 100%;
+  padding: 10px 0;
+  border-radius: 8px;
+  background: #128c7e;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: background 0.13s, opacity 0.13s;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin-top: 4px;
+}
+.actionBtn:hover:not(:disabled) { background: #0d7a6d; }
+.actionBtn:disabled { opacity: 0.45; cursor: default; }
+
+/* ---- success / welcome back state ---- */
+.successCard {
+  background: #fff;
+  border-radius: 12px;
+  border-top-left-radius: 3px;
+  padding: 18px 16px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.12);
+  align-self: flex-start;
+  max-width: 90%;
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.successEmoji {
+  font-size: 32px;
+  line-height: 1;
+}
+
+.successTitle {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.successDesc {
+  font-size: 13px;
+  color: #555;
+  line-height: 1.45;
+}
+
+.successEnterBtn {
+  margin-top: 6px;
+  padding: 9px 0;
+  border-radius: 8px;
+  background: #25d366;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: background 0.13s;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+.successEnterBtn:hover { background: #1ebe5e; }
+
+/* ---- progress dots ---- */
+.progressBar {
+  display: flex;
+  gap: 5px;
+  align-self: center;
+  position: relative;
+  z-index: 1;
+  margin: 4px 0;
+}
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.18);
+  transition: background 0.2s, width 0.2s;
+}
+.dot.active {
+  background: #128c7e;
+  width: 18px;
+  border-radius: 3px;
+}
